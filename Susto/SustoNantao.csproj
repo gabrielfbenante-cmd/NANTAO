@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Sustos na tela (nantao.susto). -->
+  <PropertyGroup>
+    <AssemblyName>SustoNantao</AssemblyName>
+    <RootNamespace>SustoNantao</RootNamespace>
+    <Version>1.1.0</Version>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src/*.cs" />
+  </ItemGroup>
+  <Import Project="..\build\LethalMod.props" />
+</Project>

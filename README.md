@@ -1,12 +1,13 @@
 # NANTAO: mods de Lethal Company
 
-Este repositório tem **três mods** (quatro plugins):
+Este repositório tem **quatro mods** (cinco plugins):
 
 | Mod | Pasta | Plugins (DLL) | O que faz |
 |---|---|---|---|
 | **NantaoAgents** | `Nantao/` | `NantaoAgents.dll` | 10 personagens com habilidades |
 | **ChineloComCriativo** | `ChineloCriativo/` | `ChineloArremessavel.dll` + `ModoCriativoTeste.dll` | Chinelo que arremessa e desmaia quem acerta (10% de explosão 5x) + modo criativo |
 | **CarrinhoCriativo** | `CarrinhoCriativo/` | `CarrinhoCriativo.dll` | Carrinho grande (20 itens + passageiro) que pega embalo em descidas |
+| **SustoNantao** | `Susto/` | `SustoNantao.dll` | Suspense (passos, batidas, risadinhas, sussurros) e sustos na tela (rosto, investida, glitch, espreita) |
 
 ## Modpack NantaoTerror (Thunderstore)
 
@@ -33,6 +34,7 @@ Os outros três artifacts (**NantaoAgents**, **ChineloComCriativo**, **CarrinhoC
 | Clique esquerdo / G / E | Chinelo | Arremessar / largar / pegar |
 | F6 / F7 | Criativo | Entregar chinelo / liga-desliga criativo |
 | F5 / E / R / T / V | Carrinho | Chamar / empurrar / guardar / descarregar / passageiro |
+| F10 | Susto | Dispara um susto de teste |
 | F8 | FPSAdaptativo (instalado separado) | — |
 
 > ⚠️ **Modo criativo:** com ele ligado, o host usa o save de teste **ChineloCriativoTeste**. Para uma partida de verdade com os amigos, aperte **F7** (ou `Criativo / Ativado = false`) **antes** de hospedar.
@@ -126,7 +128,7 @@ dotnet build CarrinhoCriativo/CarrinhoCriativo.csproj -c Release
 # sem acesso ao feed do BepInEx: acrescente -p:OfflineLibDir=/pasta/com/BepInEx.dll/e/0Harmony.dll
 ```
 
-Testes (rodam fora do jogo): `ChineloCriativo/tests/VerifyFlight.csproj` (59 verificações) e `CarrinhoCriativo/tests/VerifyRules.csproj` (196).
+Testes (rodam fora do jogo): `ChineloCriativo/tests/VerifyFlight.csproj` (59 verificações), `CarrinhoCriativo/tests/VerifyRules.csproj` (196) e `Susto/tests/VerifyScare.csproj` (regras, desenho, sons e suspense).
 
 Tudo compila contra Lethal Company **v81** (`LethalCompany.GameLibs.Steam 81.0.5-ngd.0`); a configuração comum fica em `build/LethalMod.props`.
 
@@ -136,6 +138,7 @@ Tudo compila contra Lethal Company **v81** (`LethalCompany.GameLibs.Steam 81.0.5
 Nantao/              NantaoAgents (código)
 ChineloCriativo/     chinelo + modo criativo (código e testes)
 CarrinhoCriativo/    carrinho (código e testes)
+Susto/               sustos na tela (código e testes)
 packages/            manifest, README e ícone de cada pacote Thunderstore
 install/             instalador para Windows (Instalar.bat)
 modpack/             modpack NantaoTerror (lista de mods e versões)

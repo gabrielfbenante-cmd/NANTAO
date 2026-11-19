@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Testes das regras, do desenho e do som do susto (rodam fora do jogo). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="VerifyScare.cs" />
+    <ProjectReference Include="../SustoNantao.csproj" />
+  </ItemGroup>
+</Project>

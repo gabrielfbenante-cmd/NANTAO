@@ -5,6 +5,7 @@ Conteudo:
   - NantaoAgents       (10 personagens: F1 escolhe, X usa, F9 recarrega a config)
   - ChineloComCriativo (chinelo: acertou = voa e desmaia; 10% explode 5x. Criativo: F6 / F7)
   - CarrinhoCriativo   (carrinho grande: 20 itens, passageiro (V), embalo em descidas. F5, E, R, T, V)
+  - SustoNantao        (suspense: passos, batidas, risadinhas, sussurros; e sustos na tela. F10 testa)
 
 COMO INSTALAR
   1. Feche o Lethal Company.
@@ -30,3 +31,4 @@ IMPORTANTE
     (ou ponha Criativo/Ativado = false) ANTES de hospedar.
   - O carrinho nao e salvo com a nave: descarregue (T) antes de sair.
   - F8 continua sendo do FPSAdaptativo.
+  - Suas imagens/sons de susto: BepInEx\config\Sustos\ (.png/.jpg/.wav).
