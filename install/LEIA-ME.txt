@@ -4,7 +4,7 @@ MODS NANTAO - INSTALACAO
 Conteudo:
   - NantaoAgents       (10 personagens: F1 escolhe, X usa, F9 recarrega a config)
   - ChineloComCriativo (chinelo: acertou = voa e desmaia; 10% explode 5x. Criativo: F6 / F7)
-  - CarrinhoCriativo   (carrinho de supermercado: F5, E, R, T, V)
+  - CarrinhoCriativo   (carrinho grande: 20 itens, passageiro (V), embalo em descidas. F5, E, R, T, V)
 
 COMO INSTALAR
   1. Feche o Lethal Company.

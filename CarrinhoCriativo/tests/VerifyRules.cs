@@ -53,7 +53,42 @@ public static class VerifyRules
                     previous = loaded;
                 }
             }
-            Console.WriteLine("PASS: " + checks + " checks against the compiled cart DLL: roles, capacity, state validation and loaded speed. Unity physics and multiplayer require runtime checks.");
+            // 1.1.0: tamanho vindo do host
+            CartSnapshot sized = new CartSnapshot { exists = true, size = 1.5f };
+            Check(CartRules.ValidSnapshot(sized, 20), "A 1.5x cart is valid.");
+            foreach (float bad in new float[] { 0f, .2f, 5f, float.NaN, float.PositiveInfinity })
+            { sized.size = bad; Check(!CartRules.ValidSnapshot(sized, 20), "Invalid cart size was accepted."); }
+            sized.size = 1.5f;
+            sized.cargoIds = new string[20];
+            for (int i = 0; i < 20; i++) sized.cargoIds[i] = (1000 + i).ToString();
+            Check(CartRules.ValidSnapshot(sized, 20), "A full 20-item basket is valid.");
+            Check(!CartRules.ValidSnapshot(sized, 19), "Basket over capacity was accepted.");
+
+            // 1.1.0: ladeira
+            float ax, az;
+            CartRules.SlopeAcceleration(0f, 1f, 0f, -9.81f, 3f, out ax, out az);
+            Check(ax == 0 && az == 0, "Flat floor must not push the cart.");
+            float tilt = (float)Math.Sin(2 * Math.PI / 180), up = (float)Math.Cos(2 * Math.PI / 180);
+            CartRules.SlopeAcceleration(tilt, up, 0f, -9.81f, 3f, out ax, out az);
+            Check(ax == 0 && az == 0, "A 2 degree floor counts as flat (cart stays parked).");
+            tilt = (float)Math.Sin(15 * Math.PI / 180); up = (float)Math.Cos(15 * Math.PI / 180);
+            CartRules.SlopeAcceleration(tilt, up, 0f, -9.81f, 3f, out ax, out az);
+            Check(ax > 2f && ax < 3f && Math.Abs(az) < 1e-4, "A 15 degree slope pushes downhill (+x) by about g*sin*cos.");
+            CartRules.SlopeAcceleration(0f, up, -tilt, -9.81f, 3f, out ax, out az);
+            Check(az < -2f && Math.Abs(ax) < 1e-4, "Downhill direction follows the floor normal (-z).");
+            float steepX, steepZ, gentleX, gentleZ;
+            CartRules.SlopeAcceleration((float)Math.Sin(30 * Math.PI / 180), (float)Math.Cos(30 * Math.PI / 180), 0f, -9.81f, 3f, out steepX, out steepZ);
+            CartRules.SlopeAcceleration((float)Math.Sin(8 * Math.PI / 180), (float)Math.Cos(8 * Math.PI / 180), 0f, -9.81f, 3f, out gentleX, out gentleZ);
+            Check(steepX > gentleX && gentleX > 0, "Steeper slopes accelerate more.");
+            CartRules.SlopeAcceleration(0f, 0f, 0f, -9.81f, 3f, out ax, out az);
+            Check(ax == 0 && az == 0, "Degenerate normal is ignored.");
+            Check(CartRules.SlopeSpeedLimit(4f, 0f) == 4f, "Flat push keeps the normal limit.");
+            Check(CartRules.SlopeSpeedLimit(4f, 1f) == 8f, "Downhill doubles the push limit.");
+            Check(CartRules.SlopeSpeedLimit(4f, 9f) == 10f, "Downhill bonus is capped.");
+            Check(CartRules.SlopeSpeedLimit(4f, -1f) == 2f, "Uphill halves the push limit.");
+            Check(CartRules.SlopeSpeedLimit(4f, float.NaN) == 4f, "Bad slope value is ignored.");
+
+            Console.WriteLine("PASS: " + checks + " checks against the compiled cart DLL: roles, capacity, size, slopes, state validation and loaded speed. Unity physics and multiplayer require runtime checks.");
             return 0;
         }
         catch (Exception exception) { Console.Error.WriteLine(exception); return 1; }

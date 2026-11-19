@@ -1,7 +1,9 @@
 {
   "name": "CarrinhoCriativo",
-  "version_number": "1.0.0",
+  "version_number": "1.1.0",
   "website_url": "",
-  "description": "Carrinho de supermercado com cesto para itens, rodas com fisica e lugar para passageiro. Modo de teste: F5 chama, E empurra, R guarda, T descarrega, V entra/sai.",
-  "dependencies": ["BepInEx-BepInExPack-5.4.2305"]
+  "description": "Carrinho de supermercado grande: cesto para 20 itens, lugar para passageiro e embalo em descidas (rola sozinho ladeira abaixo). F5 chama, E empurra, R guarda, T descarrega, V entra/sai.",
+  "dependencies": [
+    "BepInEx-BepInExPack-5.4.2305"
+  ]
 }

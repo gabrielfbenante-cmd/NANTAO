@@ -12,12 +12,12 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]
 
 namespace CarrinhoCriativo
 {
-    [BepInPlugin(Guid, "Carrinho de Supermercado", "1.0.0")]
+    [BepInPlugin(Guid, "Carrinho de Supermercado", "1.1.0")]
     [BepInDependency("gabri.modocriativoteste", BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class CartPlugin : BaseUnityPlugin
     {
@@ -39,6 +39,14 @@ namespace CarrinhoCriativo
         private ConfigEntry<bool> autoSpawn;
         private ConfigEntry<int> capacity;
         private ConfigEntry<float> speed;
+        private ConfigEntry<float> sizeConfig;
+        private ConfigEntry<float> slopeBoost;
+        private ConfigEntry<float> rollFriction;
+        private ConfigEntry<float> maxRollSpeed;
+        private float size = 1f;
+        private Vector3 lastGroundNormal = Vector3.up;
+        private bool wasGrounded;
+        private const int MaxCapacity = 40;
         private PlayerControllerB localPlayer;
         private PlayerControllerB passengerPlayer;
         private bool passengerPreviousMoveFlag;
@@ -58,10 +66,14 @@ namespace CarrinhoCriativo
         {
             Instance = this;
             autoSpawn = Config.Bind("Criativo", "CarrinhoAoEntrar", true, "Cria o carrinho ao entrar como anfitriao quando o modo criativo esta ligado. F5 chama o carrinho.");
-            capacity = Config.Bind("Carrinho", "Capacidade", 8, new ConfigDescription("Quantidade maxima de objetos no cesto.", new AcceptableValueRange<int>(1, 12)));
-            speed = Config.Bind("Carrinho", "VelocidadeMaxima", 4f, new ConfigDescription("Velocidade maxima aproximada, reduzida pela carga.", new AcceptableValueRange<float>(2f, 6f)));
+            capacity = Config.Bind("Carrinho", "CapacidadeCesto", 20, new ConfigDescription("Quantidade maxima de objetos no cesto (empilham em camadas).", new AcceptableValueRange<int>(1, MaxCapacity)));
+            speed = Config.Bind("Carrinho", "VelocidadeMaxima", 4f, new ConfigDescription("Velocidade maxima aproximada empurrando no plano, reduzida pela carga.", new AcceptableValueRange<float>(2f, 6f)));
+            sizeConfig = Config.Bind("Carrinho", "Tamanho", 1.5f, new ConfigDescription("Tamanho do carrinho (1 = original). Vale o do anfitriao.", new AcceptableValueRange<float>(1f, 2.5f)));
+            slopeBoost = Config.Bind("Descida", "Impulso", 1.6f, new ConfigDescription("Quanto o carrinho acelera em descidas (0 = desliga).", new AcceptableValueRange<float>(0f, 4f)));
+            rollFriction = Config.Bind("Descida", "AtritoRodas", .35f, new ConfigDescription("Atrito quando ninguem empurra (menor = rola mais longe).", new AcceptableValueRange<float>(.05f, 2f)));
+            maxRollSpeed = Config.Bind("Descida", "VelocidadeMaximaRolando", 12f, new ConfigDescription("Velocidade maxima rolando sozinho ladeira abaixo (m/s).", new AcceptableValueRange<float>(3f, 25f)));
             harmony = new Harmony(Guid); harmony.PatchAll(typeof(CartPlugin).Assembly);
-            Logger.LogInfo("Carrinho de Supermercado 1.0.0 loaded. F5: cart; E: push; R: load; T: unload; V: passenger.");
+            Logger.LogInfo("Carrinho de Supermercado 1.1.0 loaded. F5: cart; E: push; R: load; T: unload; V: passenger. Size x" + sizeConfig.Value + ", capacity " + capacity.Value + ".");
         }
 
         private bool CreativeEnabled()
@@ -157,7 +169,7 @@ namespace CarrinhoCriativo
 
         private IEnumerator DropThenLoad()
         {
-            if (localPlayer == null || cart == null || Vector3.Distance(localPlayer.transform.position, cart.transform.position) > 3f)
+            if (localPlayer == null || cart == null || Vector3.Distance(localPlayer.transform.position, cart.transform.position) > Reach)
             { Tip("Chegue perto do carrinho para guardar um item."); yield break; }
             GrabbableObject item = localPlayer.isHoldingObject ? localPlayer.currentlyHeldObjectServer : null;
             if (item == null) { Tip("Segure um item e pressione R para coloca-lo no cesto."); yield break; }
@@ -166,7 +178,7 @@ namespace CarrinhoCriativo
             pendingLoad = true;
             try
             {
-                localPlayer.DiscardHeldObject(true, null, cart.transform.position + Vector3.up * .65f, false);
+                localPlayer.DiscardHeldObject(true, null, cart.transform.position + Vector3.up * .65f * size, false);
                 yield return new WaitForSeconds(.3f);
                 if (item != null) Request("load", id.ToString());
             }
@@ -201,7 +213,7 @@ namespace CarrinhoCriativo
         {
             if (request == null || request.version != 1 || cart == null) return;
             PlayerControllerB player = Player(sender);
-            if (player == null || Vector3.Distance(player.transform.position, cart.transform.position) > 3f) return;
+            if (player == null || Vector3.Distance(player.transform.position, cart.transform.position) > Reach) return;
             if (request.action == "push")
             {
                 if (snapshot.driver == (long)sender) snapshot.driver = -1;
@@ -223,7 +235,7 @@ namespace CarrinhoCriativo
                 if (!ulong.TryParse(request.itemId, out id) || !network.SpawnManager.SpawnedObjects.TryGetValue(id, out obj)) return;
                 GrabbableObject item = obj.GetComponent<GrabbableObject>();
                 if (item == null || item.isHeld || item.isHeldByEnemy || item.isPocketed || LoadedItems.Contains(item) ||
-                    Vector3.Distance(item.transform.position, cart.transform.position) > 3f) return;
+                    Vector3.Distance(item.transform.position, cart.transform.position) > Reach) return;
                 cargo.Add(new CargoRecord(item)); LoadedItems.Add(item);
                 Logger.LogInfo("Cart loaded " + item.itemProperties.itemName + "; cargo=" + cargo.Count);
                 Tip("Item guardado no carrinho (" + cargo.Count + "/" + capacity.Value + "). T descarrega.");
@@ -252,6 +264,7 @@ namespace CarrinhoCriativo
                 Vector3 p = cart.transform.position;
                 snapshot.x = p.x; snapshot.y = p.y; snapshot.z = p.z; snapshot.yaw = cart.transform.eulerAngles.y;
                 snapshot.speed = Mathf.Min(100, motorVelocity.magnitude);
+                snapshot.size = size;
             }
             List<string> ids = new List<string>();
             for (int i = cargo.Count - 1; i >= 0; i--)
@@ -271,10 +284,11 @@ namespace CarrinhoCriativo
                 string json; reader.ReadValueSafe(out json, false);
                 if (json.Length > 4096) return;
                 CartSnapshot state = JsonUtility.FromJson<CartSnapshot>(json);
-                if (!CartRules.ValidSnapshot(state, 12)) return;
+                if (!CartRules.ValidSnapshot(state, MaxCapacity)) return;
                 snapshot = state;
                 if (!state.exists) { RemoveCart(); return; }
-                if (cart == null) CreateCart(new Vector3(state.x, state.y, state.z), state.yaw);
+                if (cart == null) CreateCart(new Vector3(state.x, state.y, state.z), state.yaw, state.size);
+                else if (Mathf.Abs(size - state.size) > .01f) { size = state.size; cart.transform.localScale = Vector3.one * size; }
                 HashSet<GrabbableObject> wanted = new HashSet<GrabbableObject>();
                 foreach (string text in state.cargoIds)
                 {
@@ -320,7 +334,7 @@ namespace CarrinhoCriativo
         {
             if (cart == null || localPlayer == null) return false;
             RaycastHit[] hits = Physics.RaycastAll(localPlayer.gameplayCamera.transform.position,
-                localPlayer.gameplayCamera.transform.forward, 3f, ~0, QueryTriggerInteraction.Ignore);
+                localPlayer.gameplayCamera.transform.forward, Reach, ~0, QueryTriggerInteraction.Ignore);
             float nearest = float.PositiveInfinity; bool found = false;
             foreach (RaycastHit hit in hits)
             {
@@ -356,10 +370,15 @@ namespace CarrinhoCriativo
             return selected;
         }
 
-        private void CreateCart(Vector3 position, float yaw)
+        /// <summary>Alcance para interagir (cresce com o carrinho).</summary>
+        private float Reach { get { return 2f + size; } }
+
+        private void CreateCart(Vector3 position, float yaw, float scale = -1f)
         {
             int physicsLayer = PhysicsLayer(position);
+            size = scale > 0f ? scale : Mathf.Clamp(sizeConfig.Value, 1f, 2.5f);
             cart = CartModel.Build(network.IsServer, FindMaterial(), out wheels);
+            cart.transform.localScale = Vector3.one * size;
             cart.layer = physicsLayer;
             int visibleLayer = LayerMask.NameToLayer("Props");
             if (visibleLayer >= 0)
@@ -374,7 +393,9 @@ namespace CarrinhoCriativo
             rolling = cart.AddComponent<AudioSource>(); rolling.spatialBlend = 1f; rolling.minDistance = 1.5f; rolling.maxDistance = 18f;
             rolling.loop = true; rolling.volume = 0; rolling.clip = MakeRattle(); rolling.Play();
             snapshot.exists = true;
-            Logger.LogInfo("Cart model created at " + position + "; server=" + network.IsServer);
+            snapshot.size = size;
+            lastGroundNormal = Vector3.up; wasGrounded = false;
+            Logger.LogInfo("Cart model created at " + position + " (size x" + size + "); server=" + network.IsServer);
         }
 
         private void SpawnOrRecall(PlayerControllerB player)
@@ -400,16 +421,17 @@ namespace CarrinhoCriativo
             Vector3 forward = Forward(player);
             Vector3 right = Vector3.Cross(Vector3.up, forward);
             Vector3[] directions = new Vector3[] { forward, right, -right, -forward };
+            float s = cart != null ? size : Mathf.Clamp(sizeConfig.Value, 1f, 2.5f);
             foreach (Vector3 direction in directions)
             {
-                Vector3 candidate = player.transform.position + direction * 1.65f;
+                Vector3 candidate = player.transform.position + direction * (.75f + .9f * s);
                 RaycastHit hit;
                 int mask = StartOfRound.Instance.collidersAndRoomMaskAndDefault;
                 if (!Physics.Raycast(candidate + Vector3.up * 2f, Vector3.down, out hit, 5f, mask, QueryTriggerInteraction.Ignore)) continue;
                 if (hit.normal.y < .7f || hit.point.y - player.transform.position.y > .6f) continue;
                 candidate.y = hit.point.y + .025f;
                 bool blocked = false;
-                foreach (Collider collider in Physics.OverlapBox(candidate + Vector3.up * .63f, new Vector3(.34f, .49f, .48f), Quaternion.Euler(0, Yaw(player), 0), mask, QueryTriggerInteraction.Ignore))
+                foreach (Collider collider in Physics.OverlapBox(candidate + Vector3.up * .63f * s, new Vector3(.34f, .49f, .48f) * s, Quaternion.Euler(0, Yaw(player), 0), mask, QueryTriggerInteraction.Ignore))
                 {
                     if (collider.GetComponentInParent<PlayerControllerB>() != null || collider.GetComponentInParent<GrabbableObject>() != null) continue;
                     if (cart != null && collider.transform.IsChildOf(cart.transform)) continue;
@@ -433,13 +455,18 @@ namespace CarrinhoCriativo
             if (snapshot.driver >= 0)
             {
                 PlayerControllerB driver = Player((ulong)snapshot.driver);
-                if (driver == null || Vector3.Distance(driver.transform.position, cart.transform.position) > 4f)
+                if (driver == null || Vector3.Distance(driver.transform.position, cart.transform.position) > 3f + size)
                 { snapshot.driver = -1; IgnoreRoleCollisions(); }
                 else
                 {
-                    Vector3 target = driver.transform.position + Forward(driver) * 1.15f;
+                    Vector3 target = driver.transform.position + Forward(driver) * (.55f + .6f * size);
                     Vector3 delta = target - position; delta.y = 0;
-                    Vector3 wanted = Vector3.ClampMagnitude(delta * 5f, CartRules.LoadedSpeed(speed.Value, cargo.Count + (snapshot.passenger >= 0 ? 3 : 0)));
+                    float limit = CartRules.LoadedSpeed(speed.Value, cargo.Count / 2 + (snapshot.passenger >= 0 ? 3 : 0));
+                    // Na descida dá pra correr mais com o carrinho; na subida ele pesa.
+                    Vector3 downhill = SlopeDownhill();
+                    if (delta.sqrMagnitude > .0001f && downhill.sqrMagnitude > .0001f)
+                        limit = CartRules.SlopeSpeedLimit(limit, Vector3.Dot(delta.normalized, downhill) / 4f);
+                    Vector3 wanted = Vector3.ClampMagnitude(delta * 5f, limit);
                     motorVelocity.x = Mathf.Lerp(motorVelocity.x, wanted.x, dt * 7f);
                     motorVelocity.z = Mathf.Lerp(motorVelocity.z, wanted.z, dt * 7f);
                     body.MoveRotation(Quaternion.Slerp(body.rotation, Quaternion.Euler(0, Yaw(driver), 0), dt * 4f));
@@ -447,8 +474,18 @@ namespace CarrinhoCriativo
             }
             else
             {
-                motorVelocity.x /= 1f + .75f * dt;
-                motorVelocity.z /= 1f + .75f * dt;
+                float friction = rollFriction.Value;
+                motorVelocity.x /= 1f + friction * dt;
+                motorVelocity.z /= 1f + friction * dt;
+                // Solto na ladeira: ganha velocidade descendo (e volta se estiver numa subida).
+                Vector3 downhill = SlopeDownhill();
+                motorVelocity += downhill * slopeBoost.Value * dt;
+                Vector3 flat = new Vector3(motorVelocity.x, 0f, motorVelocity.z);
+                if (flat.magnitude > maxRollSpeed.Value)
+                {
+                    flat = flat.normalized * maxRollSpeed.Value;
+                    motorVelocity.x = flat.x; motorVelocity.z = flat.z;
+                }
             }
             motorVelocity.y += Physics.gravity.y * dt;
             Vector3 horizontal = new Vector3(motorVelocity.x, 0, motorVelocity.z) * dt;
@@ -457,7 +494,7 @@ namespace CarrinhoCriativo
             {
                 float allowed = horizontal.magnitude;
                 Vector3 normal = Vector3.zero;
-                foreach (RaycastHit hit in Physics.BoxCastAll(position + Vector3.up * .61f, new Vector3(.335f, .45f, .48f),
+                foreach (RaycastHit hit in Physics.BoxCastAll(position + Vector3.up * .61f * size, new Vector3(.335f, .45f, .48f) * size,
                     horizontal.normalized, body.rotation, allowed + .025f, mask, QueryTriggerInteraction.Ignore))
                 {
                     if (IgnoreWorldCollider(hit.collider) || hit.normal.y > .65f) continue;
@@ -476,16 +513,25 @@ namespace CarrinhoCriativo
             {
                 next.y = floor.point.y + .005f;
                 motorVelocity.y = 0;
-                if (snapshot.driver < 0) motorVelocity += Vector3.ProjectOnPlane(Physics.gravity, floor.normal) * dt;
+                lastGroundNormal = floor.normal; wasGrounded = true;
                 groundAnchor = floor.collider.transform;
                 groundLocalPoint = groundAnchor.InverseTransformPoint(next);
                 previousGroundPoint = next;
             }
-            else groundAnchor = null;
+            else { groundAnchor = null; wasGrounded = false; }
             body.MovePosition(next);
             body.mass = 18f + cargo.Count * 1.2f + (snapshot.passenger >= 0 ? 25f : 0f);
             if (body.position.y < -150f)
             { Logger.LogWarning("Cart left the world bounds. F5 can create a new cart."); snapshot.driver = -1; snapshot.passenger = -1; RemoveCart(); }
+        }
+
+        /// <summary>Aceleração ladeira abaixo no chão atual (zero no plano ou no ar).</summary>
+        private Vector3 SlopeDownhill()
+        {
+            if (!wasGrounded) return Vector3.zero;
+            float ax, az;
+            CartRules.SlopeAcceleration(lastGroundNormal.x, lastGroundNormal.y, lastGroundNormal.z, Physics.gravity.y, 3f, out ax, out az);
+            return new Vector3(ax, 0f, az);
         }
 
         private bool IgnoreWorldCollider(Collider collider)
@@ -498,7 +544,7 @@ namespace CarrinhoCriativo
         {
             result = new RaycastHit();
             float nearest = float.PositiveInfinity;
-            foreach (RaycastHit hit in Physics.RaycastAll(point + Vector3.up * .65f, Vector3.down, 1.4f,
+            foreach (RaycastHit hit in Physics.RaycastAll(point + Vector3.up * .65f * size, Vector3.down, .75f + .65f * size,
                 StartOfRound.Instance.collidersAndRoomMaskAndDefault, QueryTriggerInteraction.Ignore))
             {
                 if (IgnoreWorldCollider(hit.collider) || hit.normal.y < .65f || hit.point.y > point.y + .25f) continue;
@@ -535,7 +581,7 @@ namespace CarrinhoCriativo
             else RestorePassenger(true);
             float moving = network.IsServer ? motorVelocity.magnitude : snapshot.speed;
             if (wheels != null)
-                foreach (Transform wheel in wheels) wheel.Rotate(Vector3.up, moving / .095f * Mathf.Rad2Deg * Time.deltaTime, Space.Self);
+                foreach (Transform wheel in wheels) wheel.Rotate(Vector3.up, moving / (.095f * size) * Mathf.Rad2Deg * Time.deltaTime, Space.Self);
             if (rolling != null) { rolling.volume = Mathf.Clamp01(moving / 4f) * .22f; rolling.pitch = .75f + Mathf.Min(moving, 6f) * .10f; }
             if (network.IsServer && moving > .5f && Time.time > nextNoise && RoundManager.Instance != null)
             { nextNoise = Time.time + 1.5f; RoundManager.Instance.PlayAudibleNoise(cart.transform.position, 10f, .6f, 0, false, 684202); }
@@ -643,13 +689,13 @@ namespace CarrinhoCriativo
                 KeyCode key = Event.current.keyCode;
                 if (key == KeyCode.F5 || key == KeyCode.E || key == KeyCode.R || key == KeyCode.T || key == KeyCode.V)
                 {
-                    bool near = cart != null && localPlayer != null && Vector3.Distance(localPlayer.transform.position, cart.transform.position) <= 3f;
+                    bool near = cart != null && localPlayer != null && Vector3.Distance(localPlayer.transform.position, cart.transform.position) <= Reach;
                     bool cartUse = key != KeyCode.E || (localPlayer != null && snapshot.driver == (long)localPlayer.actualClientId) || LookingAtCart();
                     if (key == KeyCode.F5 || (near && cartUse)) { HandleKey(key); Event.current.Use(); }
                 }
             }
             if (localPlayer == null || network == null) return;
-            if (cart != null && Vector3.Distance(localPlayer.transform.position, cart.transform.position) < 4f)
+            if (cart != null && Vector3.Distance(localPlayer.transform.position, cart.transform.position) < Reach + 1f)
                 GUI.Box(new Rect(12, Screen.height - 42, Mathf.Min(Screen.width - 24, 830), 28), overlay);
             if (quickMenu == null || !quickMenu.isMenuOpen || !network.IsHost) return;
             GUI.Box(new Rect(12, 166, 245, 226), "CARRINHO - TESTE");

@@ -6,7 +6,7 @@ Este repositório tem **três mods** (quatro plugins):
 |---|---|---|---|
 | **NantaoAgents** | `Nantao/` | `NantaoAgents.dll` | 10 personagens com habilidades |
 | **ChineloComCriativo** | `ChineloCriativo/` | `ChineloArremessavel.dll` + `ModoCriativoTeste.dll` | Chinelo que arremessa e desmaia quem acerta (10% de explosão 5x) + modo criativo |
-| **CarrinhoCriativo** | `CarrinhoCriativo/` | `CarrinhoCriativo.dll` | Carrinho de supermercado com cesto e passageiro |
+| **CarrinhoCriativo** | `CarrinhoCriativo/` | `CarrinhoCriativo.dll` | Carrinho grande (20 itens + passageiro) que pega embalo em descidas |
 
 ## Instalar tudo de uma vez (recomendado)
 
@@ -122,7 +122,7 @@ dotnet build CarrinhoCriativo/CarrinhoCriativo.csproj -c Release
 # sem acesso ao feed do BepInEx: acrescente -p:OfflineLibDir=/pasta/com/BepInEx.dll/e/0Harmony.dll
 ```
 
-Testes (rodam fora do jogo): `ChineloCriativo/tests/VerifyFlight.csproj` (59 verificações) e `CarrinhoCriativo/tests/VerifyRules.csproj` (177).
+Testes (rodam fora do jogo): `ChineloCriativo/tests/VerifyFlight.csproj` (59 verificações) e `CarrinhoCriativo/tests/VerifyRules.csproj` (196).
 
 Tudo compila contra Lethal Company **v81** (`LethalCompany.GameLibs.Steam 81.0.5-ngd.0`); a configuração comum fica em `build/LethalMod.props`.
 
