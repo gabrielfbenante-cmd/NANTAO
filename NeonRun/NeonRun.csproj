@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>NeonRun</AssemblyName>
+    <RootNamespace>NeonRun</RootNamespace>
+    <Version>0.1.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <DebugType>embedded</DebugType>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Versão do Lethal Company usada para compilar (biblioteca pública da comunidade). -->
+    <GameLibsVersion>81.0.5-ngd.0</GameLibsVersion>
+  </PropertyGroup>
+
+  <!--
+    Build normal (GitHub Actions ou seu PC): pega tudo dos feeds nuget.org + nuget.bepinex.dev
+    (configurados no NuGet.Config na raiz do repo).
+  -->
+  <ItemGroup Condition="'$(OfflineLibDir)' == ''">
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" />
+    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="$(GameLibsVersion)" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!--
+    Build "offline": quando o feed do BepInEx não está acessível.
+    Uso: dotnet build -p:OfflineLibDir=/caminho/com/BepInEx.dll/e/0Harmony.dll
+  -->
+  <PropertyGroup Condition="'$(OfflineLibDir)' != ''">
+    <NoWarn>$(NoWarn);NU1605;NU1608</NoWarn>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(OfflineLibDir)' != ''">
+    <Reference Include="BepInEx" HintPath="$(OfflineLibDir)/BepInEx.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(OfflineLibDir)/0Harmony.dll" Private="false" />
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="$(GameLibsVersion)" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

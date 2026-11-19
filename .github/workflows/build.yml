@@ -1,0 +1,35 @@
+name: Build NeonRun
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Baixar BepInEx (só para compilar)
+        run: |
+          mkdir -p libs
+          curl -sSLf -o libs/bep.zip https://github.com/BepInEx/BepInEx/releases/download/v5.4.23.2/BepInEx_win_x64_5.4.23.2.zip
+          unzip -j -o libs/bep.zip BepInEx/core/BepInEx.dll BepInEx/core/0Harmony.dll -d libs
+
+      - name: Compilar
+        run: dotnet build NeonRun/NeonRun.csproj -c Release -p:OfflineLibDir=${{ github.workspace }}/libs --source https://api.nuget.org/v3/index.json
+
+      - name: Empacotar (formato Thunderstore / r2modman)
+        run: |
+          mkdir -p pkg
+          cp thunderstore/manifest.json thunderstore/icon.png thunderstore/README.md pkg/
+          cp NeonRun/bin/Release/netstandard2.1/NeonRun.dll pkg/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NeonRun
+          path: pkg/

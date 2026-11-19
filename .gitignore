@@ -1,0 +1,8 @@
+bin/
+obj/
+libs/
+pkg/
+*.zip
+.vs/
+.idea/
+*.user
