@@ -51,6 +51,44 @@ internal static class VerifyFlight
         message.shot = 0;
         Check(!FlightRules.Valid(message, false), "unidentified explosion");
         Check(!FlightRules.Valid(null, true), "missing message");
+
+        // 1.2.0: chinelada (cai no chão) x explosão
+        message = Launch(); message.action = "land";
+        Check(FlightRules.Valid(message, false), "landing ends the flight");
+        Check(!FlightRules.Valid(message, true), "landing is not a launch");
+        message.shot = 0;
+        Check(!FlightRules.Valid(message, false), "unidentified landing");
+        message = Launch(); message.action = "bounce";
+        Check(!FlightRules.Valid(message, false), "unknown end action");
+
+        // Sorteio de 10%
+        Check(FlightRules.RollExplosion(0, 10), "roll 0 explodes");
+        Check(FlightRules.RollExplosion(9.99, 10), "roll 9.99 explodes");
+        Check(!FlightRules.RollExplosion(10, 10), "roll 10 does not explode");
+        Check(!FlightRules.RollExplosion(99, 10), "roll 99 does not explode");
+        Check(!FlightRules.RollExplosion(0, 0), "0% never explodes");
+        Check(FlightRules.RollExplosion(99.9, 100), "100% always explodes");
+        Check(!FlightRules.RollExplosion(0, float.NaN), "bad chance never explodes");
+        int booms = 0; System.Random random = new System.Random(5);
+        for (int i = 0; i < 100000; i++) if (FlightRules.RollExplosion(random.NextDouble() * 100.0, 10)) booms++;
+        Check(booms > 9500 && booms < 10500, "about 10% of throws explode");
+
+        // Força da explosão
+        Check(FlightRules.BlastFalloff(0, 6) == 1, "full force at the center");
+        Check(FlightRules.BlastFalloff(6, 6) == .5f, "half force at the edge");
+        Check(FlightRules.BlastFalloff(6.1f, 6) == 0, "no force outside");
+        Check(FlightRules.BlastFalloff(1, 0) == 0, "zero radius");
+
+        // Mensagem de desmaio
+        KnockMessage knock = new KnockMessage { target = 1, kx = 20, ky = 7, seconds = 4 };
+        Check(FlightRules.ValidKnock(knock), "normal knockout");
+        knock.seconds = .1f; Check(!FlightRules.ValidKnock(knock), "too short knockout");
+        knock.seconds = 99; Check(!FlightRules.ValidKnock(knock), "too long knockout");
+        knock.seconds = 4; knock.kx = 500; Check(!FlightRules.ValidKnock(knock), "absurd knockback");
+        knock.kx = float.NaN; Check(!FlightRules.ValidKnock(knock), "nonfinite knockback");
+        knock.kx = 20; knock.damage = -1; Check(!FlightRules.ValidKnock(knock), "negative damage");
+        knock.damage = 0; knock.version = 2; Check(!FlightRules.ValidKnock(knock), "knock protocol mismatch");
+        Check(!FlightRules.ValidKnock(null), "missing knock");
         Console.WriteLine("PASS: " + checks + " checks against compiled flight rules. Unity collisions, damage and multiplayer need runtime checks.");
     }
 }

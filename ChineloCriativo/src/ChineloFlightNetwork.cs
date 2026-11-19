@@ -12,6 +12,7 @@ namespace ChineloArremessavel
     {
         private const string FlightRequest = Guid + ".flight.request.v1";
         private const string FlightState = Guid + ".flight.state.v1";
+        private const string KnockState = Guid + ".knock.v1";
         private NetworkManager flightNetwork;
         private long nextShot;
         private readonly Dictionary<ulong, float> lastThrow = new Dictionary<ulong, float>();
@@ -26,6 +27,7 @@ namespace ChineloArremessavel
             CleanupFlightNetwork(); flightNetwork = current;
             current.CustomMessagingManager.RegisterNamedMessageHandler(FlightRequest, ReceiveFlightRequest);
             current.CustomMessagingManager.RegisterNamedMessageHandler(FlightState, ReceiveFlightState);
+            current.CustomMessagingManager.RegisterNamedMessageHandler(KnockState, ReceiveKnock);
         }
 
         private void CleanupFlightNetwork()
@@ -34,6 +36,7 @@ namespace ChineloArremessavel
             {
                 flightNetwork.CustomMessagingManager.UnregisterNamedMessageHandler(FlightRequest);
                 flightNetwork.CustomMessagingManager.UnregisterNamedMessageHandler(FlightState);
+                flightNetwork.CustomMessagingManager.UnregisterNamedMessageHandler(KnockState);
             }
             StopAllCoroutines(); flightNetwork = null;
             lastThrow.Clear(); pendingItems.Clear(); finishedShots.Clear(); nextShot = 0;
@@ -157,12 +160,84 @@ namespace ChineloArremessavel
                 {
                     finishedShots.Add(message.shot);
                     ChineloBehaviour chinelo = FindChinelo(message.item);
-                    if (chinelo != null) chinelo.FinishFlight();
-                    PlayExplosion(new Vector3(message.x, message.y, message.z));
+                    Vector3 position = new Vector3(message.x, message.y, message.z);
+                    if (message.action == "land") { if (chinelo != null) chinelo.LandFlight(position); }
+                    else { if (chinelo != null) chinelo.FinishFlight(); PlayExplosion(position); }
                 }
             }
             catch (Exception exception) { Logger.LogWarning("Invalid chinelo state: " + exception.Message); }
         }
+
+        /// <summary>
+        /// O chinelo bateu (ou chegou no alcance). Só o host decide:
+        /// sorteio de explosão; senão vira chinelada: quem foi atingido voa e desmaia, e o chinelo cai no chão.
+        /// </summary>
+        internal void Impact(ChineloBehaviour chinelo, Vector3 position, PlayerControllerB victim, string reason)
+        {
+            if (flightNetwork == null || !flightNetwork.IsServer || !chinelo.IsFlying) return;
+            if (FlightRules.RollExplosion(UnityEngine.Random.value * 100.0, explodeChance.Value))
+            {
+                Explode(chinelo, position, reason + " (sorteio de " + explodeChance.Value + "%)");
+                return;
+            }
+
+            FlightMessage message = chinelo.Flight;
+            message.action = "land"; message.x = position.x; message.y = position.y; message.z = position.z;
+            chinelo.LandFlight(position); BroadcastFlight(message);
+
+            if (victim != null && !victim.isPlayerDead)
+            {
+                Vector3 push = new Vector3(message.dx, 0f, message.dz);
+                if (push.sqrMagnitude < .01f) push = victim.transform.position - position;
+                push.y = 0f; push.Normalize();
+                Vector3 knock = push * knockForce.Value + Vector3.up * knockForce.Value * .35f;
+                SendKnock(victim, knock, knockSeconds.Value, 0);
+                Logger.LogInfo("Chinelada #" + message.shot + " em " + victim.playerUsername + " -> desmaio " + knockSeconds.Value + "s");
+            }
+            else Logger.LogInfo("Chinelo caiu #" + message.shot + " em " + position + "; reason=" + reason);
+        }
+
+        // ---------------------------------------------------------------- desmaio
+
+        private void SendKnock(PlayerControllerB target, Vector3 knock, float seconds, int playerDamage)
+        {
+            KnockMessage message = new KnockMessage { target = target.actualClientId, kx = knock.x, ky = knock.y, kz = knock.z,
+                seconds = seconds, damage = playerDamage };
+            if (!FlightRules.ValidKnock(message)) return;
+            ApplyKnock(message); // no próprio host
+            string json = JsonUtility.ToJson(message);
+            foreach (ulong client in flightNetwork.ConnectedClientsIds)
+            {
+                if (client == flightNetwork.LocalClientId) continue;
+                using (FastBufferWriter writer = new FastBufferWriter(1024, Allocator.Temp))
+                {
+                    writer.WriteValueSafe(json, false);
+                    flightNetwork.CustomMessagingManager.SendNamedMessage(KnockState, client, writer, NetworkDelivery.ReliableSequenced);
+                }
+            }
+        }
+
+        private void ReceiveKnock(ulong sender, FastBufferReader reader)
+        {
+            if (flightNetwork == null || flightNetwork.IsServer || sender != NetworkManager.ServerClientId) return;
+            try
+            {
+                string json; reader.ReadValueSafe(out json, false);
+                if (json.Length > 1024) return;
+                KnockMessage message = JsonUtility.FromJson<KnockMessage>(json);
+                if (FlightRules.ValidKnock(message)) ApplyKnock(message);
+            }
+            catch (Exception exception) { Logger.LogWarning("Invalid chinelo knock: " + exception.Message); }
+        }
+
+        private void ApplyKnock(KnockMessage message)
+        {
+            PlayerControllerB player = FindPlayer(message.target);
+            if (player != null)
+                KnockoutController.Apply(player, new Vector3(message.kx, message.ky, message.kz), message.seconds, message.damage);
+        }
+
+        // ---------------------------------------------------------------- explosão (10%)
 
         internal void Explode(ChineloBehaviour chinelo, Vector3 position, string reason)
         {
@@ -172,7 +247,8 @@ namespace ChineloArremessavel
             chinelo.FinishFlight(); BroadcastFlight(message); PlayExplosion(position);
             PlayerControllerB thrower = FindPlayer(message.player);
             HashSet<EnemyAI> hitEnemies = new HashSet<EnemyAI>();
-            if (damage.Value > 0)
+            int enemyForce = Mathf.RoundToInt(damage.Value * explodeMultiplier.Value);
+            if (enemyForce > 0)
                 foreach (Collider collider in Physics.OverlapSphere(position, blastRadius.Value, ~0, QueryTriggerInteraction.Collide))
                 {
                     EnemyAI enemy = collider.GetComponentInParent<EnemyAI>();
@@ -186,25 +262,53 @@ namespace ChineloArremessavel
                             hit.collider.GetComponentInParent<PlayerControllerB>() != null || hit.collider.GetComponentInParent<GrabbableObject>() != null) continue;
                         blocked = true; break;
                     }
-                    if (!blocked) enemy.HitEnemyOnLocalClient(damage.Value, (enemy.transform.position - position).normalized, thrower, true, 1);
+                    if (!blocked) enemy.HitEnemyOnLocalClient(enemyForce, (enemy.transform.position - position).normalized, thrower, true, 1);
                 }
-            if (RoundManager.Instance != null) RoundManager.Instance.PlayAudibleNoise(position, 25f, 1f, 0, false, 684203);
+            // Jogadores perto: arremessados e desmaiados (sem dano, a não ser que DanoEmJogadores > 0).
+            if (StartOfRound.Instance != null)
+                foreach (PlayerControllerB player in StartOfRound.Instance.allPlayerScripts)
+                {
+                    if (player == null || !player.isPlayerControlled || player.isPlayerDead) continue;
+                    Vector3 center = player.transform.position + Vector3.up;
+                    float falloff = FlightRules.BlastFalloff(Vector3.Distance(center, position), blastRadius.Value);
+                    if (falloff <= 0f) continue;
+                    Vector3 away = center - position; away.y = 0f;
+                    if (away.sqrMagnitude < .01f) away = UnityEngine.Random.insideUnitSphere; away.y = 0f;
+                    Vector3 knock = (away.normalized * knockForce.Value * 1.5f + Vector3.up * knockForce.Value * .6f) * falloff;
+                    SendKnock(player, knock, knockSeconds.Value + 1.5f, explodePlayerDamage.Value);
+                }
+            if (RoundManager.Instance != null) RoundManager.Instance.PlayAudibleNoise(position, 60f, 1f, 0, false, 684203);
             Logger.LogInfo("Chinelo exploded #" + message.shot + " at " + position + "; reason=" + reason);
             if (chinelo.Native.NetworkObject.IsSpawned) chinelo.Native.NetworkObject.Despawn(true);
         }
 
         private void PlayExplosion(Vector3 position)
         {
-            // Instantiate the visual only: the native mine helper also hurts players.
+            // Só o visual do jogo (a função de mina do jogo também machucaria jogadores).
+            // Versão forte: explosão central + anel de explosões em volta.
             if (StartOfRound.Instance != null && StartOfRound.Instance.explosionPrefab != null)
             {
-                GameObject effect = UnityEngine.Object.Instantiate(StartOfRound.Instance.explosionPrefab, position, Quaternion.Euler(-90f, 0, 0));
-                effect.SetActive(true); UnityEngine.Object.Destroy(effect, 5f);
+                int extra = Mathf.Clamp(Mathf.RoundToInt(explodeMultiplier.Value) - 1, 0, 6);
+                for (int i = 0; i <= extra; i++)
+                {
+                    Vector3 offset = Vector3.zero;
+                    if (i > 0)
+                    {
+                        float angle = i * Mathf.PI * 2f / extra;
+                        offset = new Vector3(Mathf.Cos(angle), .3f, Mathf.Sin(angle)) * Mathf.Min(2.5f, blastRadius.Value * .35f);
+                    }
+                    GameObject effect = UnityEngine.Object.Instantiate(StartOfRound.Instance.explosionPrefab, position + offset, Quaternion.Euler(-90f, 0, 0));
+                    effect.SetActive(true); UnityEngine.Object.Destroy(effect, 5f);
+                }
             }
-            ChineloBehaviour.PlayBoom(position);
-            if (HUDManager.Instance != null && GameNetworkManager.Instance != null && GameNetworkManager.Instance.localPlayerController != null &&
-                Vector3.Distance(GameNetworkManager.Instance.localPlayerController.transform.position, position) < 14f)
-                HUDManager.Instance.ShakeCamera(ScreenShakeType.Small);
+            ChineloBehaviour.PlayBoom(position, true);
+            PlayerControllerB local = GameNetworkManager.Instance != null ? GameNetworkManager.Instance.localPlayerController : null;
+            if (HUDManager.Instance != null && local != null)
+            {
+                float distance = Vector3.Distance(local.transform.position, position);
+                if (distance < blastRadius.Value * 2.5f) HUDManager.Instance.ShakeCamera(ScreenShakeType.VeryStrong);
+                else if (distance < 45f) HUDManager.Instance.ShakeCamera(ScreenShakeType.Big);
+            }
         }
     }
 }

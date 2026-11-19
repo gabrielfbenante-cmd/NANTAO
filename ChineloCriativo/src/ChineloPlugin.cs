@@ -8,12 +8,12 @@ using HarmonyLib;
 using Unity.Netcode;
 using UnityEngine;
 
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 
 namespace ChineloArremessavel
 {
-    [BepInPlugin(Guid, "Chinelo Arremessavel", "1.1.0")]
+    [BepInPlugin(Guid, "Chinelo Arremessavel", "1.2.0")]
     public sealed partial class ChineloPlugin : BaseUnityPlugin
     {
         public const string Guid = "gabri.chineloarremessavel";
@@ -28,6 +28,12 @@ namespace ChineloArremessavel
         internal ConfigEntry<int> damage;
         internal ConfigEntry<float> flightSpeed;
         internal ConfigEntry<float> blastRadius;
+        internal ConfigEntry<float> explodeChance;
+        internal ConfigEntry<float> explodeMultiplier;
+        internal ConfigEntry<int> explodePlayerDamage;
+        internal ConfigEntry<float> knockForce;
+        internal ConfigEntry<float> knockSeconds;
+        internal ConfigEntry<bool> dropItem;
 
         private void Awake()
         {
@@ -35,10 +41,17 @@ namespace ChineloArremessavel
             range = Config.Bind("Chinelo", "Alcance", 12f, new ConfigDescription("Distancia do voo reto antes de explodir, em metros. Colisoes antecipam a explosao.", new AcceptableValueRange<float>(3f, 25f)));
             damage = Config.Bind("Chinelo", "ForcaContraMonstros", 1, new ConfigDescription("Forca da explosao contra monstros vulneraveis, por alvo. Alguns monstros sao imunes.", new AcceptableValueRange<int>(0, 3)));
             flightSpeed = Config.Bind("Chinelo", "Velocidade", 14f, new ConfigDescription("Velocidade do voo reto em metros por segundo.", new AcceptableValueRange<float>(6f, 30f)));
-            blastRadius = Config.Bind("Chinelo", "RaioDaExplosao", 3f, new ConfigDescription("Raio do dano contra monstros. A explosao nao causa dano a jogadores.", new AcceptableValueRange<float>(1f, 6f)));
+            // Porrada: acertou alguem -> empurrao forte + desmaio. Explosao so em uma parte das vezes.
+            knockForce = Config.Bind("Porrada", "ForcaDoEmpurrao", 22f, new ConfigDescription("Forca do empurrao em quem leva a chinelada (m/s).", new AcceptableValueRange<float>(0f, 60f)));
+            knockSeconds = Config.Bind("Porrada", "TempoDesmaiado", 4f, new ConfigDescription("Segundos caido no chao, com o corpo mole, antes de levantar.", new AcceptableValueRange<float>(1f, 15f)));
+            dropItem = Config.Bind("Porrada", "LargarItemDaMao", true, "Quem desmaia larga o item que estava segurando.");
+            explodeChance = Config.Bind("Explosao", "ChanceDeExplodir", 10f, new ConfigDescription("Chance (%) do chinelo explodir quando bate ou chega no alcance. No resto ele cai no chao e pode ser pego de novo.", new AcceptableValueRange<float>(0f, 100f)));
+            explodeMultiplier = Config.Bind("Explosao", "Multiplicador", 5f, new ConfigDescription("Quantas vezes a explosao e mais forte que a original (forca contra monstros e empurrao).", new AcceptableValueRange<float>(1f, 10f)));
+            blastRadius = Config.Bind("Explosao", "Raio", 6f, new ConfigDescription("Raio da explosao (m): monstros tomam dano e jogadores sao arremessados e desmaiam.", new AcceptableValueRange<float>(1f, 15f)));
+            explodePlayerDamage = Config.Bind("Explosao", "DanoEmJogadores", 0, new ConfigDescription("Dano da explosao em jogadores (0 = so arremessa e desmaia, sem tirar vida).", new AcceptableValueRange<int>(0, 100)));
             harmony = new Harmony(Guid);
             harmony.PatchAll(typeof(ChineloPlugin).Assembly);
-            Logger.LogInfo("Chinelo Arremessavel 1.1.0 loaded. Straight flight and impact/range explosion.");
+            Logger.LogInfo("Chinelo Arremessavel 1.2.0 loaded. Hit = knockback + knockout; " + explodeChance.Value + "% chance of a x" + explodeMultiplier.Value + " explosion.");
         }
 
         private void Update()

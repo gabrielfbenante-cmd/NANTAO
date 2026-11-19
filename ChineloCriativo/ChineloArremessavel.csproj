@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>ChineloArremessavel</AssemblyName>
     <RootNamespace>ChineloArremessavel</RootNamespace>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <!-- A versão do assembly já está declarada em src/ChineloPlugin.cs. -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
@@ -14,6 +14,7 @@
     <Compile Include="src/ChineloBehaviour.cs" />
     <Compile Include="src/ChineloModel.cs" />
     <Compile Include="src/FlightRules.cs" />
+    <Compile Include="src/Knockout.cs" />
   </ItemGroup>
   <Import Project="..\build\LethalMod.props" />
 </Project>
