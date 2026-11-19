@@ -18,4 +18,4 @@
 | 9 | Salva | Bombinhas no chão (2 por rodada) |
 | 10 | Clarão | Granada de luz (cega e atordoa) |
 
-**Todos na lobby precisam ter o mod.** Tudo é ajustável em `BepInEx/config/nantao.agents.cfg`, inclusive os nomes. Aperte F8 no jogo para recarregar.
+**Todos na lobby precisam ter o mod.** Tudo é ajustável em `BepInEx/config/nantao.agents.cfg`, inclusive os nomes. Aperte F9 no jogo para recarregar.

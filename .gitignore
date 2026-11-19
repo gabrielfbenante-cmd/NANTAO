@@ -1,6 +1,7 @@
 bin/
 obj/
 libs/
+out/
 pkg/
 *.zip
 .vs/

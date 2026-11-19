@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Segundo plugin do pacote: modo criativo (gabri.modocriativoteste). Depende do chinelo. -->
+  <PropertyGroup>
+    <AssemblyName>ModoCriativoTeste</AssemblyName>
+    <RootNamespace>ModoCriativoTeste</RootNamespace>
+    <Version>1.0.0</Version>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src/CreativePlugin.cs" />
+    <ProjectReference Include="ChineloArremessavel.csproj" Private="false" />
+  </ItemGroup>
+  <Import Project="..\build\LethalMod.props" />
+</Project>

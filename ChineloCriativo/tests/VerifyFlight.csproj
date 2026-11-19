@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Testes automáticos das regras de voo (rodam fora do jogo). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="VerifyFlight.cs" />
+    <ProjectReference Include="../ChineloArremessavel.csproj" />
+  </ItemGroup>
+</Project>

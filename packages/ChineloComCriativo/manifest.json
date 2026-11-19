@@ -1,0 +1,9 @@
+{
+  "name": "ChineloComCriativo",
+  "version_number": "1.1.0",
+  "website_url": "",
+  "description": "Chinelo explosivo com voo reto na direcao da mira. Explode ao atingir algo ou chegar ao alcance. Inclui criativo: F6 entrega outro chinelo e F7 liga/desliga.",
+  "dependencies": [
+    "BepInEx-BepInExPack-5.4.2305"
+  ]
+}

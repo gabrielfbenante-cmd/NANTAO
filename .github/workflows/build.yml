@@ -1,4 +1,4 @@
-name: Build NantaoAgents
+name: Build NANTAO mods
 
 on:
   push:
@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NUGET: --source https://api.nuget.org/v3/index.json
     steps:
       - uses: actions/checkout@v4
 
@@ -20,16 +22,61 @@ jobs:
           curl -sSLf -o libs/bep.zip https://github.com/BepInEx/BepInEx/releases/download/v5.4.23.2/BepInEx_win_x64_5.4.23.2.zip
           unzip -j -o libs/bep.zip BepInEx/core/BepInEx.dll BepInEx/core/0Harmony.dll -d libs
 
-      - name: Compilar
-        run: dotnet build Nantao/Nantao.csproj -c Release -p:OfflineLibDir=${{ github.workspace }}/libs --source https://api.nuget.org/v3/index.json
-
-      - name: Empacotar (formato Thunderstore / r2modman)
+      - name: Compilar os 4 plugins
         run: |
-          mkdir -p pkg
-          cp thunderstore/manifest.json thunderstore/icon.png thunderstore/README.md pkg/
-          cp Nantao/bin/Release/netstandard2.1/NantaoAgents.dll pkg/
+          set -e
+          for p in Nantao/Nantao.csproj ChineloCriativo/ChineloArremessavel.csproj ChineloCriativo/ModoCriativoTeste.csproj CarrinhoCriativo/CarrinhoCriativo.csproj; do
+            echo "::group::$p"
+            dotnet build "$p" -c Release -p:OfflineLibDir=${{ github.workspace }}/libs $NUGET
+            echo "::endgroup::"
+          done
+
+      - name: Testes (regras do chinelo e do carrinho)
+        run: |
+          set -e
+          dotnet build ChineloCriativo/tests/VerifyFlight.csproj -c Release -p:OfflineLibDir=${{ github.workspace }}/libs $NUGET -o out/tests/flight
+          dotnet out/tests/flight/VerifyFlight.dll
+          dotnet build CarrinhoCriativo/tests/VerifyRules.csproj -c Release -p:OfflineLibDir=${{ github.workspace }}/libs $NUGET -o out/tests/cart
+          dotnet out/tests/cart/VerifyRules.dll
+
+      - name: Empacotar
+        run: |
+          set -e
+          R=netstandard2.1
+          # Pacotes Thunderstore (r2modman: Settings > Import local mod)
+          mkdir -p out/NantaoAgents out/ChineloComCriativo out/CarrinhoCriativo
+          cp packages/NantaoAgents/* out/NantaoAgents/
+          cp Nantao/bin/Release/$R/NantaoAgents.dll out/NantaoAgents/
+          cp packages/ChineloComCriativo/* out/ChineloComCriativo/
+          cp ChineloCriativo/bin/Release/$R/ChineloArremessavel.dll ChineloCriativo/bin/Release/$R/ModoCriativoTeste.dll out/ChineloComCriativo/
+          cp packages/CarrinhoCriativo/* out/CarrinhoCriativo/
+          cp CarrinhoCriativo/bin/Release/$R/CarrinhoCriativo.dll out/CarrinhoCriativo/
+
+          # Pacote completo + instalador (mesmas pastas da instalação manual)
+          P=out/TodosOsMods/BepInEx/plugins
+          mkdir -p $P/NantaoAgents $P/ChineloCriativo $P/CarrinhoCriativo
+          cp out/NantaoAgents/NantaoAgents.dll $P/NantaoAgents/
+          cp out/ChineloComCriativo/*.dll $P/ChineloCriativo/
+          cp out/CarrinhoCriativo/CarrinhoCriativo.dll $P/CarrinhoCriativo/
+          cp install/Instalar.bat install/Instalar-no-jogo.ps1 install/LEIA-ME.txt out/TodosOsMods/
+          find out -maxdepth 4 -type f | sort
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TodosOsMods-com-instalador
+          path: out/TodosOsMods/
 
       - uses: actions/upload-artifact@v4
         with:
           name: NantaoAgents
-          path: pkg/
+          path: out/NantaoAgents/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ChineloComCriativo
+          path: out/ChineloComCriativo/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CarrinhoCriativo
+          path: out/CarrinhoCriativo/

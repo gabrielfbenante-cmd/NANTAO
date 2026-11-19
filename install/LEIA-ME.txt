@@ -1,0 +1,32 @@
+MODS NANTAO - INSTALACAO
+========================
+
+Conteudo:
+  - NantaoAgents       (10 personagens: F1 escolhe, X usa, F9 recarrega a config)
+  - ChineloComCriativo (chinelo explosivo + modo criativo: F6 / F7)
+  - CarrinhoCriativo   (carrinho de supermercado: F5, E, R, T, V)
+
+COMO INSTALAR
+  1. Feche o Lethal Company.
+  2. Extraia este .zip inteiro numa pasta.
+  3. Clique duas vezes em "Instalar.bat".
+     - Ele acha o perfil "Default" do Thunderstore Mod Manager (ou do r2modman),
+       faz backup do que ja existia e copia os mods.
+     - Tambem liga HideManagerGameObject = true no BepInEx.cfg
+       (o chinelo e o carrinho precisam disso).
+  4. Abra o jogo pelo gerenciador: "Start modded".
+
+Outro perfil? Abra o PowerShell nesta pasta e rode:
+  powershell -ExecutionPolicy Bypass -File .\Instalar-no-jogo.ps1 -Perfil "NomeDoPerfil"
+
+Instalacao manual: copie a pasta "BepInEx" daqui para dentro da pasta do perfil
+(...\Thunderstore Mod Manager\DataFolder\LethalCompany\profiles\Default\),
+aceitando substituir os arquivos.
+
+IMPORTANTE
+  - Todo mundo da lobby precisa ter os MESMOS mods.
+  - Modo criativo do chinelo: com ele ligado, o HOST usa o save de teste
+    "ChineloCriativoTeste". Para jogar uma partida de verdade, aperte F7
+    (ou ponha Criativo/Ativado = false) ANTES de hospedar.
+  - O carrinho nao e salvo com a nave: descarregue (T) antes de sair.
+  - F8 continua sendo do FPSAdaptativo.

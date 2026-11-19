@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Plugin principal: o chinelo (gabri.chineloarremessavel). -->
+  <PropertyGroup>
+    <AssemblyName>ChineloArremessavel</AssemblyName>
+    <RootNamespace>ChineloArremessavel</RootNamespace>
+    <Version>1.1.0</Version>
+    <!-- A versão do assembly já está declarada em src/ChineloPlugin.cs. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src/ChineloPlugin.cs" />
+    <Compile Include="src/ChineloFlightNetwork.cs" />
+    <Compile Include="src/ChineloBehaviour.cs" />
+    <Compile Include="src/ChineloModel.cs" />
+    <Compile Include="src/FlightRules.cs" />
+  </ItemGroup>
+  <Import Project="..\build\LethalMod.props" />
+</Project>

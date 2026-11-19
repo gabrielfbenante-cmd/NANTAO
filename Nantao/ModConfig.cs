@@ -6,7 +6,7 @@ namespace Nantao
 {
     /// <summary>
     /// Tudo que dá pra ajustar sem recompilar. Arquivo: BepInEx/config/nantao.agents.cfg
-    /// (F8 no jogo recarrega).
+    /// (F9 no jogo recarrega).
     /// </summary>
     internal static class ModConfig
     {
@@ -131,8 +131,10 @@ namespace Nantao
             AbilityKey = cfg.Bind("Geral", "TeclaHabilidade", "<Keyboard>/x",
                 "Tecla da habilidade do personagem (formato Unity Input System: <Keyboard>/x, <Keyboard>/q, <Mouse>/forwardButton...).");
             MenuKey = cfg.Bind("Geral", "TeclaMenu", "<Keyboard>/f1", "Abre o menu de escolha de personagem.");
-            ReloadKeyBinding = cfg.Bind("Geral", "TeclaRecarregarConfig", "<Keyboard>/f8",
-                "Recarrega este arquivo com o jogo aberto.");
+            ReloadKeyBinding = cfg.Bind("Geral", "TeclaRecarregarConfig", "<Keyboard>/f9",
+                "Recarrega este arquivo com o jogo aberto. (Não use F8: é do FPSAdaptativo.)");
+            // Configs da versão 0.2.0 vinham com F8, que conflita com o FPSAdaptativo.
+            if (ReloadKeyBinding.Value == "<Keyboard>/f8") ReloadKeyBinding.Value = "<Keyboard>/f9";
             AllowSwapMidRound = cfg.Bind("Geral", "TrocarDuranteRodada", false,
                 "Se false, só dá pra escolher/trocar personagem com a nave em órbita. (Vale a config do HOST.)");
             OpenMenuOnJoin = cfg.Bind("Geral", "AbrirMenuAoEntrar", true,

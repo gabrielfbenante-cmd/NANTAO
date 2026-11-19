@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Carrinho de supermercado (gabri.carrinhocriativo). -->
+  <PropertyGroup>
+    <AssemblyName>CarrinhoCriativo</AssemblyName>
+    <RootNamespace>CarrinhoCriativo</RootNamespace>
+    <Version>1.0.0</Version>
+    <!-- A versão do assembly já está declarada em src/CartPlugin.cs. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src/*.cs" />
+  </ItemGroup>
+  <Import Project="..\build\LethalMod.props" />
+</Project>

@@ -1,4 +1,41 @@
-# NANTAO: NantaoAgents (mod de Lethal Company)
+# NANTAO: mods de Lethal Company
+
+Este repositório tem **três mods** (quatro plugins):
+
+| Mod | Pasta | Plugins (DLL) | O que faz |
+|---|---|---|---|
+| **NantaoAgents** | `Nantao/` | `NantaoAgents.dll` | 10 personagens com habilidades |
+| **ChineloComCriativo** | `ChineloCriativo/` | `ChineloArremessavel.dll` + `ModoCriativoTeste.dll` | Chinelo explosivo + modo criativo para testes |
+| **CarrinhoCriativo** | `CarrinhoCriativo/` | `CarrinhoCriativo.dll` | Carrinho de supermercado com cesto e passageiro |
+
+## Instalar tudo de uma vez (recomendado)
+
+1. No GitHub, abra **Actions**, clique na execução mais recente de **Build NANTAO mods** (precisa estar verde ✅).
+2. Em **Artifacts**, baixe **TodosOsMods-com-instalador** e extraia o `.zip` inteiro.
+3. Com o jogo **fechado**, clique duas vezes em **`Instalar.bat`**.
+   Ele acha o perfil *Default* do Thunderstore Mod Manager/r2modman, faz backup, copia os 4 plugins
+   e liga `HideManagerGameObject = true` no `BepInEx.cfg` (necessário para o chinelo e o carrinho).
+4. Abra o jogo pelo gerenciador (**Start modded**).
+
+Os outros três artifacts (**NantaoAgents**, **ChineloComCriativo**, **CarrinhoCriativo**) são pacotes separados para o r2modman (**Settings → Import local mod**).
+
+## Mapa de teclas (sem conflitos)
+
+| Tecla | Mod | Ação |
+|---|---|---|
+| X | NantaoAgents | Habilidade do personagem |
+| F1 | NantaoAgents | Menu de personagens |
+| F9 | NantaoAgents | Recarregar config |
+| Clique esquerdo / G / E | Chinelo | Arremessar / largar / pegar |
+| F6 / F7 | Criativo | Entregar chinelo / liga-desliga criativo |
+| F5 / E / R / T / V | Carrinho | Chamar / empurrar / guardar / descarregar / passageiro |
+| F8 | FPSAdaptativo (instalado separado) | — |
+
+> ⚠️ **Modo criativo:** com ele ligado, o host usa o save de teste **ChineloCriativoTeste**. Para uma partida de verdade com os amigos, aperte **F7** (ou `Criativo / Ativado = false`) **antes** de hospedar.
+
+---
+
+# NantaoAgents
 
 10 personagens com habilidades. Você escolhe um no começo, **cada personagem só pode ser de um jogador**, e quem preferir pode ir sem personagem.
 
@@ -10,7 +47,7 @@ Nomes, visuais e sons foram **feitos do zero**, só inspirados em habilidades de
 |---|---|
 | **F1** | Abre/fecha o menu de personagens (só com a nave em órbita) |
 | **X** | Usa a habilidade do seu personagem |
-| **F8** | Recarrega a config com o jogo aberto |
+| **F9** | Recarrega a config com o jogo aberto |
 
 O menu abre sozinho quando você entra na nave sem personagem. Clique numa carta para escolher. As cartas mostram quem já pegou cada personagem.
 
@@ -38,28 +75,13 @@ Todos os efeitos (raios, âncora, fogo, lobo, fumaça etc.) **aparecem para todo
 Por padrão, fogo e bombinhas **não machucam** jogadores. Para ligar: `DanoEmAmigos = true` nas seções `Brasa (fogo)` e `Salva (bombinhas)`.
 O **Clarão** usa a granada de luz do jogo, que cega **qualquer um** que olhar, inclusive você. Para que ele só atordoe monstros: `Clarao (granada de luz) / CegaJogadores = false`.
 
-## Como baixar
+## Instalação
 
-1. No GitHub, abra a aba **Actions** deste repositório.
-2. Clique na execução mais recente de **Build NantaoAgents** (precisa estar verde ✅).
-3. Em **Artifacts**, baixe **NantaoAgents** (vem um `.zip`).
-
-## Como instalar (r2modman / Thunderstore Mod Manager)
-
-1. Abra o r2modman e selecione o Lethal Company.
-2. **Settings → Import local mod** → escolha o `.zip`.
-3. **Start modded**.
-
-Se você usava a versão antiga (**NeonRun**), desinstale ela. A corrida agora é o personagem Faísca.
-
-### Instalação manual
-
-1. Instale o [BepInExPack](https://thunderstore.io/c/lethal-company/p/BepInEx/BepInExPack/).
-2. Copie `NantaoAgents.dll` para `Lethal Company/BepInEx/plugins/`.
+Veja **Instalar tudo de uma vez** no topo. Se você usava a versão antiga (**NeonRun**), desinstale ela: a corrida agora é a Faísca.
 
 ## Configuração
 
-Arquivo: `BepInEx/config/nantao.agents.cfg` (aparece depois de abrir o jogo uma vez). Edite, salve e aperte **F8** no jogo.
+Arquivo: `BepInEx/config/nantao.agents.cfg` (aparece depois de abrir o jogo uma vez). Edite, salve e aperte **F9** no jogo.
 
 - **Geral**: teclas, troca durante a rodada, volume, efeitos de tela.
 - **Personagens**: o nome exibido de cada uma das 10 vagas.
@@ -92,9 +114,25 @@ Se a fumaça da Névoa não aparecer, mude `Nevoa (fumaca) / Modo` para `esferas
 ### Compilar
 
 ```bash
+# cada plugin:
 dotnet build Nantao/Nantao.csproj -c Release
-# sem acesso ao feed do BepInEx:
-dotnet build Nantao/Nantao.csproj -c Release -p:OfflineLibDir=/pasta/com/BepInEx.dll/e/0Harmony.dll
+dotnet build ChineloCriativo/ChineloArremessavel.csproj -c Release
+dotnet build ChineloCriativo/ModoCriativoTeste.csproj -c Release
+dotnet build CarrinhoCriativo/CarrinhoCriativo.csproj -c Release
+# sem acesso ao feed do BepInEx: acrescente -p:OfflineLibDir=/pasta/com/BepInEx.dll/e/0Harmony.dll
 ```
 
-Compilado contra Lethal Company **v81** (`LethalCompany.GameLibs.Steam 81.0.5-ngd.0`).
+Testes (rodam fora do jogo): `ChineloCriativo/tests/VerifyFlight.csproj` (35 verificações) e `CarrinhoCriativo/tests/VerifyRules.csproj` (177).
+
+Tudo compila contra Lethal Company **v81** (`LethalCompany.GameLibs.Steam 81.0.5-ngd.0`); a configuração comum fica em `build/LethalMod.props`.
+
+## Organização do repositório
+
+```
+Nantao/              NantaoAgents (código)
+ChineloCriativo/     chinelo + modo criativo (código e testes)
+CarrinhoCriativo/    carrinho (código e testes)
+packages/            manifest, README e ícone de cada pacote Thunderstore
+install/             instalador para Windows (Instalar.bat)
+build/               configuração de compilação compartilhada
+```
