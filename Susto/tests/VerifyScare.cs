@@ -116,17 +116,18 @@ public static class VerifyScare
             Check(SuspenseRules.PickEvent(0, .5, -1) == -1, "nothing unlocked at zero");
             Check(SuspenseRules.PickEvent(.1f, .5, -1) == (int)SuspenseEvent.Creak, "only creaks at low tension");
             Check(SuspenseRules.PickEvent(.1f, .5, (int)SuspenseEvent.Creak) == (int)SuspenseEvent.Creak, "single option may repeat");
-            var seen = new bool[6];
+            var seen = new bool[SuspenseRules.Unlock.Length];
             var r2 = new Random(3); int prev = -1; bool repeated = false;
             for (int i = 0; i < 3000; i++)
             {
                 int e = SuspenseRules.PickEvent(1f, r2.NextDouble(), prev);
-                Check(e >= 0 && e < 6, "valid event");
+                Check(e >= 0 && e < SuspenseRules.Unlock.Length, "valid event");
                 if (e == prev) repeated = true;
                 seen[e] = true; prev = e;
             }
             Check(!repeated, "never the same event twice in a row");
-            Check(Array.TrueForAll(seen, x => x), "all six events happen at max tension");
+            Check(Array.TrueForAll(seen, x => x), "all eight events happen at max tension");
+            Check(SuspenseRules.PickEvent(.3f, .99, -1) != (int)SuspenseEvent.Eyes, "eyes locked at low-mid tension");
             for (int i = 0; i < 200; i++)
                 Check(SuspenseRules.PickEvent(.3f, r2.NextDouble(), -1) <= (int)SuspenseEvent.Footsteps, "giggles/whispers locked at mid tension");
 

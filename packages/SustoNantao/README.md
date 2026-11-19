@@ -11,7 +11,9 @@ Quanto maior a tensão, mais coisas começam a acontecer — **só pra você** (
 | baixa | porta rangendo em algum lugar |
 | | batidas na parede perto de você |
 | média | **passos vindo por trás e chegando mais perto** — param quando você se vira |
+| | **sua lanterna falha**, pisca e apaga por um instante |
 | | luzes piscando |
+| | **olhos vermelhos e um sorriso** no fundo do corredor escuro — somem do nada quando você chega perto ou aponta a lanterna |
 | alta | **risadinhas** ao longe, ecoando no corredor |
 | máxima | **sussurros** colados num ouvido |
 

@@ -2,7 +2,7 @@
   "name": "SustoNantao",
   "version_number": "1.1.0",
   "website_url": "",
-  "description": "Suspense e sustos: passos te seguindo, batidas na parede, risadinhas, sussurros e luzes piscando (so voce ouve) ate o susto na tela. Tudo original; aceita suas imagens e sons. F10 testa.",
+  "description": "Suspense e sustos: passos te seguindo, batidas na parede, risadinhas, sussurros, lanterna falhando e olhos no escuro (so voce ouve) ate o susto na tela. Tudo original; aceita suas imagens e sons. F10 testa.",
   "dependencies": [
     "BepInEx-BepInExPack-5.4.2305"
   ]

@@ -1,7 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using GameNetcodeStuff;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace SustoNantao
 {
@@ -96,6 +99,13 @@ namespace SustoNantao
                 case SuspenseEvent.Giggle:
                     PlayAt(RandomPoint(cam, 10f, 18f), Pick(giggles), .85f, local);
                     break;
+                case SuspenseEvent.FlashlightFlicker:
+                    if (LightOn(local)) StartCoroutine(FlickerFlashlight(local));
+                    else PlayAt(RandomPoint(cam, 8f, 15f), Pick(creaks), .75f, local); // sem luz: range uma porta
+                    break;
+                case SuspenseEvent.Eyes:
+                    if (DarkEyes.Active == null) DarkEyes.Spawn(EyesPoint(cam), local, Pick(giggles), P.suspenseVolume.Value);
+                    break;
                 case SuspenseEvent.Whisper:
                     float side = UnityEngine.Random.value < .5f ? -1f : 1f;
                     var src = PlayAt(cam.position + cam.right * side * .45f - cam.forward * .2f, Pick(whispers), .9f, local);
@@ -124,6 +134,60 @@ namespace SustoNantao
             PlayAt(stepPos, Pick(steps), .8f, local);
             stepsLeft--;
             stepTimer = .42f + UnityEngine.Random.value * .12f;
+        }
+
+        /// <summary>A lanterna (ou a luz do capacete) falha algumas vezes e apaga por um instante. Só na sua tela.</summary>
+        private IEnumerator FlickerFlashlight(PlayerControllerB local)
+        {
+            var lights = new List<Behaviour>();
+            FlashlightItem flash = local.currentlyHeldObjectServer as FlashlightItem;
+            if (flash == null || !flash.isBeingUsed) flash = local.pocketedFlashlight as FlashlightItem;
+            if (flash != null && flash.isBeingUsed)
+            {
+                if (flash.flashlightBulb != null && flash.flashlightBulb.enabled) lights.Add(flash.flashlightBulb);
+                if (flash.flashlightBulbGlow != null && flash.flashlightBulbGlow.enabled) lights.Add(flash.flashlightBulbGlow);
+            }
+            if (local.helmetLight != null && local.helmetLight.enabled) lights.Add(local.helmetLight);
+            if (lights.Count == 0) yield break;
+
+            try
+            {
+                if (flash != null && flash.flashlightAudio != null && flash.flashlightFlicker != null)
+                    flash.flashlightAudio.PlayOneShot(flash.flashlightFlicker, .8f);
+                int flicks = UnityEngine.Random.Range(4, 8);
+                for (int i = 0; i < flicks; i++)
+                {
+                    foreach (var l in lights) if (l != null) l.enabled = false;
+                    yield return new WaitForSeconds(UnityEngine.Random.Range(.04f, .14f));
+                    foreach (var l in lights) if (l != null) l.enabled = true;
+                    yield return new WaitForSeconds(UnityEngine.Random.Range(.05f, .22f));
+                }
+                // Apaga de vez por um instante... e volta.
+                foreach (var l in lights) if (l != null) l.enabled = false;
+                yield return new WaitForSeconds(UnityEngine.Random.Range(.6f, 1.2f));
+            }
+            finally
+            {
+                foreach (var l in lights) if (l != null) l.enabled = true;
+            }
+        }
+
+        /// <summary>Lugar escuro lá na frente (8–16 m), na altura dos olhos, encostado numa parede se tiver.</summary>
+        private static Vector3 EyesPoint(Transform cam)
+        {
+            for (int attempt = 0; attempt < 6; attempt++)
+            {
+                Vector3 dir = Quaternion.Euler(UnityEngine.Random.Range(-4f, 4f), UnityEngine.Random.Range(-32f, 32f), 0f) * cam.forward;
+                dir.y = Mathf.Clamp(dir.y, -.08f, .08f);
+                dir.Normalize();
+                bool wall = Physics.Raycast(cam.position, dir, out RaycastHit hit, 16f, Mask, QueryTriggerInteraction.Ignore);
+                if (wall && hit.distance < 8f) continue;
+                Vector3 p = wall ? hit.point - dir * .25f : cam.position + dir * 15f;
+                if (Physics.Raycast(p + Vector3.up, Vector3.down, out RaycastHit floor, 4f, Mask, QueryTriggerInteraction.Ignore))
+                    p.y = floor.point.y + 1.45f + UnityEngine.Random.Range(-.25f, .2f);
+                return p;
+            }
+            return cam.position + cam.forward * 12f;
         }
 
         // ------------------------------------------------------------------ util
@@ -227,6 +291,151 @@ namespace SustoNantao
             var clip = AudioClip.Create(name, samples.Length, 1, rate, false);
             clip.SetData(samples, 0);
             return clip;
+        }
+    }
+
+    /// <summary>
+    /// Olhos vermelhos e um sorriso fino no escuro (desenho original). Ficam te olhando e somem do nada
+    /// quando você chega perto, aponta a lanterna ou depois de um tempo. Só você vê.
+    /// </summary>
+    internal sealed class DarkEyes : MonoBehaviour
+    {
+        public static DarkEyes Active;
+
+        private PlayerControllerB local;
+        private Transform leftEye, rightEye;
+        private LineRenderer smile;
+        private Material eyeMat, smileMat;
+        private AudioClip vanishGiggle;
+        private float volume, age, life, nextBlink, blinkUntil;
+        private static Shader unlit;
+
+        public static void Spawn(Vector3 position, PlayerControllerB local, AudioClip giggle, float volume)
+        {
+            var go = new GameObject("SustoOlhosNoEscuro");
+            go.transform.position = position;
+            var e = go.AddComponent<DarkEyes>();
+            e.local = local;
+            e.vanishGiggle = giggle;
+            e.volume = volume;
+            e.Build();
+            Active = e;
+        }
+
+        private void Build()
+        {
+            life = 7f + UnityEngine.Random.value * 6f;
+            nextBlink = 1.5f + UnityEngine.Random.value * 2f;
+            eyeMat = Glow(new Color(1f, .05f, .02f), 12f);
+            smileMat = Glow(new Color(1f, .75f, .7f), 2.5f);
+            float spacing = .16f + UnityEngine.Random.value * .05f;
+            leftEye = Eye(new Vector3(-spacing / 2f, 0f, 0f));
+            rightEye = Eye(new Vector3(spacing / 2f, .01f, 0f));
+
+            // Sorriso: arco largo e fino, cantos subindo.
+            var go = new GameObject("Sorriso");
+            go.transform.SetParent(transform, false);
+            smile = go.AddComponent<LineRenderer>();
+            smile.useWorldSpace = false;
+            smile.positionCount = 16;
+            smile.widthMultiplier = .012f;
+            smile.sharedMaterial = smileMat;
+            smile.shadowCastingMode = ShadowCastingMode.Off;
+            smile.receiveShadows = false;
+            float width = .3f + UnityEngine.Random.value * .12f;
+            for (int i = 0; i < 16; i++)
+            {
+                float k = i / 15f * 2f - 1f; // -1..1
+                smile.SetPosition(i, new Vector3(k * width / 2f, -.17f + .07f * k * k, 0f));
+            }
+            smile.enabled = UnityEngine.Random.value < .75f; // às vezes só os olhos
+        }
+
+        private Transform Eye(Vector3 offset)
+        {
+            var e = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var col = e.GetComponent<Collider>();
+            if (col != null) Destroy(col);
+            var mr = e.GetComponent<MeshRenderer>();
+            mr.sharedMaterial = eyeMat;
+            mr.shadowCastingMode = ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+            e.transform.SetParent(transform, false);
+            e.transform.localPosition = offset;
+            e.transform.localScale = new Vector3(.055f, .03f, .02f);
+            return e.transform;
+        }
+
+        private void Update()
+        {
+            if (local == null || local.isPlayerDead) { Vanish(false); return; }
+            Transform cam = local.gameplayCamera != null ? local.gameplayCamera.transform : local.transform;
+            age += Time.deltaTime;
+
+            // Sempre virado pra você.
+            Vector3 toEyes = transform.position - cam.position;
+            transform.rotation = Quaternion.LookRotation(toEyes, Vector3.up);
+
+            // Piscadas.
+            if (age > nextBlink) { blinkUntil = age + .12f; nextBlink = age + 2f + UnityEngine.Random.value * 3f; }
+            float open = age < blinkUntil ? .1f : 1f;
+            leftEye.localScale = new Vector3(.055f, .03f * open, .02f);
+            rightEye.localScale = new Vector3(.055f, .03f * open, .02f);
+
+            float dist = toEyes.magnitude;
+            bool approached = dist < 6.5f;
+            bool lit = LightPointedAt(cam, toEyes);
+            if (approached || lit || age > life) Vanish(approached || lit);
+        }
+
+        private bool LightPointedAt(Transform cam, Vector3 toEyes)
+        {
+            if (toEyes.magnitude > 22f) return false;
+            bool lightOn = (local.helmetLight != null && local.helmetLight.enabled) ||
+                           (local.currentlyHeldObjectServer is FlashlightItem f && f.isBeingUsed);
+            return lightOn && Vector3.Angle(cam.forward, toEyes) < 9f;
+        }
+
+        /// <summary>Some do nada. Às vezes deixa uma risadinha baixinha pra trás.</summary>
+        private void Vanish(bool spooked)
+        {
+            if (spooked && vanishGiggle != null && UnityEngine.Random.value < .3f)
+            {
+                var go = new GameObject("SustoRisadaSumindo");
+                go.transform.position = transform.position;
+                var a = go.AddComponent<AudioSource>();
+                a.spatialBlend = 1f; a.rolloffMode = AudioRolloffMode.Linear; a.minDistance = 2f; a.maxDistance = 25f;
+                if (local != null && local.movementAudio != null) a.outputAudioMixerGroup = local.movementAudio.outputAudioMixerGroup;
+                a.clip = vanishGiggle; a.volume = Mathf.Clamp01(volume * .45f); a.Play();
+                Destroy(go, vanishGiggle.length + .3f);
+            }
+            Destroy(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            if (Active == this) Active = null;
+            if (eyeMat != null) Destroy(eyeMat);
+            if (smileMat != null) Destroy(smileMat);
+        }
+
+        private static Material Glow(Color color, float intensity)
+        {
+            if (unlit == null)
+            {
+                unlit = Shader.Find("HDRP/Unlit");
+                if (unlit == null)
+                    foreach (var m in Resources.FindObjectsOfTypeAll<Material>())
+                        if (m != null && m.shader != null && m.shader.name == "HDRP/Unlit") { unlit = m.shader; break; }
+                if (unlit == null) unlit = Shader.Find("Unlit/Color");
+            }
+            var mat = new Material(unlit);
+            Color c = color * intensity; c.a = 1f;
+            if (mat.HasProperty("_UnlitColor")) mat.SetColor("_UnlitColor", c);
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", c);
+            if (mat.HasProperty("_Color")) mat.SetColor("_Color", c);
+            if (unlit.name.StartsWith("HDRP")) { try { HDMaterial.ValidateMaterial(mat); } catch (Exception) { } }
+            return mat;
         }
     }
 }

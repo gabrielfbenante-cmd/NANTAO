@@ -3,13 +3,13 @@ using System;
 namespace SustoNantao
 {
     /// <summary>Eventos de suspense, do mais leve ao mais pesado.</summary>
-    public enum SuspenseEvent { Creak = 0, Knock = 1, Footsteps = 2, Lights = 3, Giggle = 4, Whisper = 5 }
+    public enum SuspenseEvent { Creak = 0, Knock = 1, Footsteps = 2, Lights = 3, Giggle = 4, Whisper = 5, FlashlightFlicker = 6, Eyes = 7 }
 
     /// <summary>Regras do medidor de tensão (código puro, testável).</summary>
     public static class SuspenseRules
     {
         /// <summary>Tensão mínima para cada evento começar a acontecer.</summary>
-        public static readonly float[] Unlock = { .05f, .15f, .25f, .4f, .5f, .65f };
+        public static readonly float[] Unlock = { .05f, .15f, .25f, .4f, .5f, .65f, .32f, .45f };
 
         /// <summary>
         /// Atualiza a tensão (0..1). Sobe dentro do prédio (bem mais rápido sozinho e no escuro),
