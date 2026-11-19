@@ -16,6 +16,15 @@ def r2x(profile, mods):
 if __name__ == "__main__":
     src, profile, out = sys.argv[1], sys.argv[2], sys.argv[3]
     mods = json.load(open(src, encoding="utf-8"))
+    import os
+    config_dir = os.path.join(os.path.dirname(src), "config")
+    extra = 0
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr("export.r2x", r2x(profile, mods))
-    print(f"{out}: {len(mods)} mods no perfil '{profile}'")
+        # Configs prontas (ex.: 6 vagas no HotbarPlus) vão junto e caem em BepInEx/config do perfil.
+        if os.path.isdir(config_dir):
+            for name in sorted(os.listdir(config_dir)):
+                if name.endswith(".cfg"):
+                    z.write(os.path.join(config_dir, name), "BepInEx/config/" + name)
+                    extra += 1
+    print(f"{out}: {len(mods)} mods + {extra} configs no perfil '{profile}'")

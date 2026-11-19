@@ -1,6 +1,6 @@
 {
   "name": "NantaoAgents",
-  "version_number": "0.2.1",
+  "version_number": "0.3.0",
   "website_url": "",
   "description": "10 personagens com habilidades (corrida, teleportes, reviver, fumaça, fogo, lobo, bombinhas, clarão). Um de cada por lobby. F1 escolhe, X usa.",
   "dependencies": [

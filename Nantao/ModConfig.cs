@@ -19,6 +19,9 @@ namespace Nantao
         public static ConfigEntry<float> Volume;
         public static ConfigEntry<bool> ScreenEffects;
         public static ConfigEntry<bool> DebugLog;
+        public static ConfigEntry<bool> ShowHealth;
+        public static ConfigEntry<float> HealthX, HealthY;
+        public static ConfigEntry<bool> WalkieOnV;
 
         // Nomes exibidos (10 vagas)
         public static readonly ConfigEntry<string>[] Names = new ConfigEntry<string>[Characters.Count];
@@ -141,6 +144,11 @@ namespace Nantao
                 "Abre o menu automaticamente quando você entra na nave sem personagem.");
             Volume = cfg.Bind("Geral", "Volume", 0.8f, "Volume dos sons das habilidades.");
             ScreenEffects = cfg.Bind("Geral", "EfeitosDeTela", true, "Vinhetas e efeitos de tela (só pra você).");
+            ShowHealth = cfg.Bind("Vida", "MostrarVida", true, "Mostra sua vida (0 a 100) no canto superior esquerdo.");
+            HealthX = cfg.Bind("Vida", "PosicaoX", 175f, "Distancia da borda esquerda (em pixels de uma tela 1920x1080).");
+            HealthY = cfg.Bind("Vida", "PosicaoY", 40f, "Distancia do topo (em pixels de uma tela 1920x1080).");
+            WalkieOnV = cfg.Bind("Compatibilidade", "RadioNoV", true,
+                "Se o mod ReservedWalkieSlot estiver instalado com a tecla padrao (X), troca para V (o X e das habilidades). Se voce mudar no menu de controles, a sua escolha vale.");
             DebugLog = cfg.Bind("Debug", "LogDetalhado", false,
                 "Escreve no log ossos encontrados, parâmetros de animação, etc. Útil pra mandar se algo ficar estranho.");
 

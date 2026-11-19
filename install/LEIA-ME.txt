@@ -2,9 +2,9 @@ MODS NANTAO - INSTALACAO
 ========================
 
 Conteudo:
-  - NantaoAgents       (10 personagens: F1 escolhe, X usa, F9 recarrega a config)
+  - NantaoAgents       (10 personagens: F1 escolhe, X usa, F9 recarrega a config; vida 0-100 no canto)
   - ChineloComCriativo (chinelo: acertou = voa e desmaia; 10% explode 5x. Criativo: F6 / F7)
-  - CarrinhoCriativo   (carrinho grande: 20 itens, passageiro (V), embalo em descidas. F5, E, R, T, V)
+  - CarrinhoCriativo   (carrinho grande: 20 itens, passageiro (C), embalo em descidas. F5, E, R, T, C)
   - SustoNantao        (suspense: passos, batidas, risadinhas, sussurros; e sustos na tela. F10 testa)
 
 COMO INSTALAR

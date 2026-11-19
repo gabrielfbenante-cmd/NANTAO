@@ -9,7 +9,7 @@ namespace Nantao
     {
         public const string Guid = "nantao.agents";
         public const string Name = "NantaoAgents";
-        public const string Version = "0.2.1";
+        public const string Version = "0.3.0";
 
         internal static Plugin Instance;
         internal static ManualLogSource Log;

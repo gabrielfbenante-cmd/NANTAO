@@ -24,6 +24,7 @@ namespace Nantao
         private float _windupVisual;         // 0..1 (todos os PCs)
         private string _msg;
         private float _msgUntil;
+        private float _arriveFlash;
 
         public AnchorAbility(PlayerAgent agent) : base(agent) { }
 
@@ -140,6 +141,11 @@ namespace Nantao
         {
             Color gold = ModConfig.Anchor;
             if (_windupVisual > 0f) hud.Vignette(gold, 0.6f * _windupVisual);
+            if (_arriveFlash > 0f)
+            {
+                hud.Vignette(gold, .85f * _arriveFlash);
+                hud.Streaks(Color.Lerp(gold, Color.white, .5f), .6f * _arriveFlash);
+            }
 
             if (_msg != null && Time.time < _msgUntil) { hud.Status(_msg, new Color(1f, 0.55f, 0.35f)); return; }
 
@@ -192,6 +198,8 @@ namespace Nantao
             _placedInOrbit = StartOfRound.Instance != null && StartOfRound.Instance.inShipPhase;
             _marker = AnchorMarker.Spawn(pos, ModConfig.Anchor);
             _gesture = 0.4f;
+            RingWave.Spawn(pos, ModConfig.Anchor, .1f, 1.3f, .35f, .07f, 5f);
+            LineParticles.Burst(pos + Vector3.up * .1f, ModConfig.Anchor, 10, 1.5f, Vector3.up * 1.5f, 6f, .45f, .018f, .05f);
             Sounds.PlayAt(pos, Sounds.AnchorPlace);
         }
 
@@ -206,6 +214,11 @@ namespace Nantao
         {
             BurstFx.Spawn(from + Vector3.up * 0.1f, ModConfig.Anchor, 1f);
             BurstFx.Spawn(to + Vector3.up * 0.1f, ModConfig.Anchor, 1.2f, 0.6f);
+            // Saída: anel se fechando. Chegada: anel abrindo + partículas subindo.
+            RingWave.Spawn(from, ModConfig.Anchor, 2.2f, .1f, .35f, .1f, 5f);
+            RingWave.Spawn(to, ModConfig.Anchor, .2f, 3f, .55f, .12f, 5f);
+            LineParticles.Burst(to + Vector3.up * .2f, ModConfig.Anchor, 20, 1.2f, Vector3.up * 3f, 1f, .9f, .02f, .08f, .5f);
+            if (IsLocal) _arriveFlash = 1f;
             Sounds.PlayAt(from, Sounds.TpArrive, 0.7f);
             Sounds.PlayAt(to, Sounds.TpArrive);
             try
@@ -230,6 +243,7 @@ namespace Nantao
                 if (P.isPlayerDead || orbit != _placedInOrbit) RemoveAnchorLocal();
             }
 
+            _arriveFlash = Mathf.MoveTowards(_arriveFlash, 0f, dt / .6f);
             if (IsLocal) _windupVisual = _windup >= 0f ? Mathf.Clamp01(_windup / Mathf.Max(0.05f, ModConfig.AnchorWindup.Value)) : 0f;
             else _windupVisual = Mathf.MoveTowards(_windupVisual, 0f, dt / Mathf.Max(0.2f, ModConfig.AnchorWindup.Value + 0.3f));
 
@@ -261,7 +275,8 @@ namespace Nantao
         private LineRenderer _beam;
         private Material _mat;
         private UnityEngine.Rendering.HighDefinition.HDAdditionalLightData _light;
-        private float _t;
+        private float _t, _moteTimer;
+        private Color _color;
 
         public static AnchorMarker Spawn(Vector3 pos, Color color)
         {
@@ -274,6 +289,7 @@ namespace Nantao
 
         private void Build(Color color)
         {
+            _color = color;
             _mat = Mats.Glow(color);
             _ringA = FxUtil.Ring(transform, "RingA", _mat, 0.45f, 0.03f).transform;
             _ringB = FxUtil.Ring(transform, "RingB", _mat, 0.28f, 0.02f, 6).transform; // hexágono
@@ -309,6 +325,15 @@ namespace Nantao
             _diamond.localRotation = Quaternion.Euler(0f, _t * 90f, 0f);
             _beam.widthMultiplier = 0.05f + 0.03f * pulse;
             if (_light != null) _light.SetIntensity(120f + 80f * pulse);
+            // Partículas douradas subindo da âncora.
+            _moteTimer -= Time.deltaTime;
+            if (_moteTimer <= 0f)
+            {
+                _moteTimer = .16f;
+                float a = UnityEngine.Random.value * Mathf.PI * 2f;
+                Vector3 p = transform.position + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * .4f;
+                LineParticles.Burst(p, _color, 1, .05f, Vector3.up * .8f, 0f, 1.3f, .012f, .12f);
+            }
         }
 
         private void OnDestroy()

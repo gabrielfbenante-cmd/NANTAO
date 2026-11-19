@@ -12,12 +12,12 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 
 namespace CarrinhoCriativo
 {
-    [BepInPlugin(Guid, "Carrinho de Supermercado", "1.1.0")]
+    [BepInPlugin(Guid, "Carrinho de Supermercado", "1.2.0")]
     [BepInDependency("gabri.modocriativoteste", BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class CartPlugin : BaseUnityPlugin
     {
@@ -43,6 +43,7 @@ namespace CarrinhoCriativo
         private ConfigEntry<float> slopeBoost;
         private ConfigEntry<float> rollFriction;
         private ConfigEntry<float> maxRollSpeed;
+        private ConfigEntry<string> passengerKey;
         private float size = 1f;
         private Vector3 lastGroundNormal = Vector3.up;
         private bool wasGrounded;
@@ -71,9 +72,11 @@ namespace CarrinhoCriativo
             sizeConfig = Config.Bind("Carrinho", "Tamanho", 1.5f, new ConfigDescription("Tamanho do carrinho (1 = original). Vale o do anfitriao.", new AcceptableValueRange<float>(1f, 2.5f)));
             slopeBoost = Config.Bind("Descida", "Impulso", 1.6f, new ConfigDescription("Quanto o carrinho acelera em descidas (0 = desliga).", new AcceptableValueRange<float>(0f, 4f)));
             rollFriction = Config.Bind("Descida", "AtritoRodas", .35f, new ConfigDescription("Atrito quando ninguem empurra (menor = rola mais longe).", new AcceptableValueRange<float>(.05f, 2f)));
+            passengerKey = Config.Bind("Teclas", "Passageiro", "C",
+                "Tecla para subir/descer do carrinho como passageiro (nome da tecla: C, B, N...). O V ficou para o radio.");
             maxRollSpeed = Config.Bind("Descida", "VelocidadeMaximaRolando", 12f, new ConfigDescription("Velocidade maxima rolando sozinho ladeira abaixo (m/s).", new AcceptableValueRange<float>(3f, 25f)));
             harmony = new Harmony(Guid); harmony.PatchAll(typeof(CartPlugin).Assembly);
-            Logger.LogInfo("Carrinho de Supermercado 1.1.0 loaded. F5: cart; E: push; R: load; T: unload; V: passenger. Size x" + sizeConfig.Value + ", capacity " + capacity.Value + ".");
+            Logger.LogInfo("Carrinho de Supermercado 1.2.0 loaded. F5: cart; E: push; R: load; T: unload; " + PassengerName + ": passenger. Size x" + sizeConfig.Value + ", capacity " + capacity.Value + ".");
         }
 
         private bool CreativeEnabled()
@@ -133,14 +136,15 @@ namespace CarrinhoCriativo
                     if (keyboard.eKey.wasPressedThisFrame) HandleKey(KeyCode.E);
                     if (keyboard.rKey.wasPressedThisFrame) HandleKey(KeyCode.R);
                     if (keyboard.tKey.wasPressedThisFrame) HandleKey(KeyCode.T);
-                    if (keyboard.vKey.wasPressedThisFrame) HandleKey(KeyCode.V);
+                    var pk = keyboard[PassengerInputKey];
+                    if (pk != null && pk.wasPressedThisFrame) HandleKey(PassengerKeyCode);
                 }
             }
             if (Time.unscaledTime >= lastDistanceCheck)
             {
                 lastDistanceCheck = Time.unscaledTime + .4f;
                 overlay = cart == null ? "F5: chamar carrinho" : "CARRINHO " + cargo.Count + "/" + capacity.Value +
-                    " | E: empurrar/soltar | R: guardar | T: descarregar | V: passageiro | F5: chamar";
+                    " | E: empurrar/soltar | R: guardar | T: descarregar | " + PassengerName + ": passageiro | F5: chamar";
             }
         }
 
@@ -164,7 +168,7 @@ namespace CarrinhoCriativo
             }
             else if (key == KeyCode.R) { if (!pendingLoad) StartCoroutine(DropThenLoad()); }
             else if (key == KeyCode.T) Request("unload", null);
-            else if (key == KeyCode.V) Request("ride", null);
+            else if (key == PassengerKeyCode) Request("ride", null);
         }
 
         private IEnumerator DropThenLoad()
@@ -370,6 +374,11 @@ namespace CarrinhoCriativo
             return selected;
         }
 
+        // Tecla de passageiro configurável (padrão C; o V é do rádio no modpack).
+        private KeyCode PassengerKeyCode => Enum.TryParse(passengerKey.Value, true, out KeyCode k) && k != KeyCode.None ? k : KeyCode.C;
+        private Key PassengerInputKey => Enum.TryParse(passengerKey.Value, true, out Key k) && k != Key.None ? k : Key.C;
+        private string PassengerName => PassengerKeyCode.ToString();
+
         /// <summary>Alcance para interagir (cresce com o carrinho).</summary>
         private float Reach { get { return 2f + size; } }
 
@@ -413,7 +422,7 @@ namespace CarrinhoCriativo
             else CreateCart(position, Yaw(player));
             autoDone = true;
             Broadcast();
-            Tip("Carrinho pronto! E empurra; R guarda o item da mao; T descarrega; V entra no assento.");
+            Tip("Carrinho pronto! E empurra; R guarda o item da mao; T descarrega; " + PassengerName + " entra no assento.");
         }
 
         private bool FindSpawn(PlayerControllerB player, out Vector3 result)
@@ -687,7 +696,7 @@ namespace CarrinhoCriativo
             if (Event.current.type == EventType.KeyDown)
             {
                 KeyCode key = Event.current.keyCode;
-                if (key == KeyCode.F5 || key == KeyCode.E || key == KeyCode.R || key == KeyCode.T || key == KeyCode.V)
+                if (key == KeyCode.F5 || key == KeyCode.E || key == KeyCode.R || key == KeyCode.T || key == PassengerKeyCode)
                 {
                     bool near = cart != null && localPlayer != null && Vector3.Distance(localPlayer.transform.position, cart.transform.position) <= Reach;
                     bool cartUse = key != KeyCode.E || (localPlayer != null && snapshot.driver == (long)localPlayer.actualClientId) || LookingAtCart();
@@ -709,7 +718,7 @@ namespace CarrinhoCriativo
                 { motorVelocity += cart.transform.forward * 2.2f; Logger.LogInfo("Creative cart push impulse applied."); }
             }
             if (GUI.Button(new Rect(22, 324, 225, 26), "Empurrar / soltar [E]")) { quickMenu.CloseQuickMenu(); Request("push", null); }
-            if (GUI.Button(new Rect(22, 356, 225, 26), "Entrar / sair [V]")) { quickMenu.CloseQuickMenu(); Request("ride", null); }
+            if (GUI.Button(new Rect(22, 356, 225, 26), "Entrar / sair [" + PassengerName + "]")) { quickMenu.CloseQuickMenu(); Request("ride", null); }
         }
 
         internal static void Tip(string text)

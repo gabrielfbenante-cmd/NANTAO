@@ -121,6 +121,7 @@ namespace Nantao
         {
             if (Player == null || !IsLocal) return;
             EnsureInput();
+            InputCompat.Tick();
 
             if (_reload.WasPressedThisFrame()) Plugin.ReloadConfig();
 

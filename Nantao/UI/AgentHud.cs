@@ -12,7 +12,9 @@ namespace Nantao
     {
         private readonly GameObject _root;
         private readonly RawImage _vignette, _streaks, _smokeFill;
-        private readonly Text _title, _status, _toast;
+        private readonly Text _title, _status, _toast, _health;
+        private readonly GameObject _healthBarRoot;
+        private readonly Image _healthFill;
         private readonly GameObject _barRoot;
         private readonly RectTransform _barFill;
         private readonly Image _barFillImage;
@@ -46,6 +48,28 @@ namespace Nantao
             _title = MakeText("Title", new Vector2(0, 186), 26, FontStyle.Bold);
             _status = MakeText("Status", new Vector2(0, 128), 20, FontStyle.Normal);
             _toast = MakeText("Toast", new Vector2(0, 260), 24, FontStyle.Bold);
+
+            // Vida (canto superior esquerdo).
+            _health = MakeText("Vida", Vector2.zero, 24, FontStyle.Bold);
+            var hrt = _health.rectTransform;
+            hrt.anchorMin = hrt.anchorMax = new Vector2(0f, 1f);
+            hrt.pivot = new Vector2(0f, 1f);
+            hrt.sizeDelta = new Vector2(220, 32);
+            _health.alignment = TextAnchor.MiddleLeft;
+            _healthBarRoot = new GameObject("VidaBarra", typeof(RectTransform), typeof(Image));
+            _healthBarRoot.transform.SetParent(_root.transform, false);
+            var hb = (RectTransform)_healthBarRoot.transform;
+            hb.anchorMin = hb.anchorMax = new Vector2(0f, 1f);
+            hb.pivot = new Vector2(0f, 1f);
+            hb.sizeDelta = new Vector2(160, 8);
+            _healthBarRoot.GetComponent<Image>().color = new Color(0f, 0f, 0f, .55f);
+            var hf = new GameObject("Fill", typeof(RectTransform), typeof(Image));
+            hf.transform.SetParent(_healthBarRoot.transform, false);
+            var hfr = (RectTransform)hf.transform;
+            hfr.anchorMin = new Vector2(0f, 0f); hfr.anchorMax = new Vector2(0f, 1f); hfr.pivot = new Vector2(0f, .5f);
+            hfr.sizeDelta = new Vector2(160, 0);
+            _healthFill = hf.GetComponent<Image>();
+            _healthBarRoot.SetActive(false);
 
             _barRoot = new GameObject("Bar", typeof(RectTransform), typeof(Image));
             _barRoot.transform.SetParent(_root.transform, false);
@@ -149,6 +173,27 @@ namespace Nantao
             }
 
             _toast.enabled = visible && Time.time < _toastUntil;
+
+            // Vida 0..100 no canto superior esquerdo.
+            bool showHealth = visible && alive && ModConfig.ShowHealth.Value;
+            _health.enabled = showHealth;
+            _healthBarRoot.SetActive(showHealth);
+            if (showHealth)
+            {
+                int hp = Mathf.Clamp(p.health, 0, 100);
+                float k = hp / 100f;
+                Color c = k > .5f ? Color.Lerp(new Color(1f, .85f, .2f), new Color(.35f, 1f, .45f), (k - .5f) * 2f)
+                                  : Color.Lerp(new Color(1f, .2f, .15f), new Color(1f, .85f, .2f), k * 2f);
+                if (hp <= 20) c *= .75f + .25f * Mathf.Abs(Mathf.Sin(Time.time * 6f)); // pisca quando está quase morrendo
+                c.a = 1f;
+                _health.text = "VIDA " + hp;
+                _health.color = c;
+                _healthFill.color = c;
+                ((RectTransform)_healthFill.transform).sizeDelta = new Vector2(160f * k, 0f);
+                Vector2 pos = new Vector2(ModConfig.HealthX.Value, -ModConfig.HealthY.Value);
+                _health.rectTransform.anchoredPosition = pos;
+                ((RectTransform)_healthBarRoot.transform).anchoredPosition = pos + new Vector2(0f, -32f);
+            }
         }
 
         /// <summary>"&lt;Keyboard&gt;/x" → "X"</summary>

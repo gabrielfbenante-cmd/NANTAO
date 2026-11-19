@@ -463,4 +463,154 @@ namespace Nantao
             if (_mat != null) Destroy(_mat);
         }
     }
+
+    /// <summary>
+    /// Partículas leves feitas de riscos de luz (faíscas, brasas, partículas subindo).
+    /// Cada partícula tem velocidade, gravidade (negativa = sobe) e some com o tempo.
+    /// </summary>
+    internal sealed class LineParticles : MonoBehaviour
+    {
+        private sealed class P { public Vector3 Pos, Vel; public float Age, Life, Width; public LineRenderer Lr; }
+
+        private readonly List<P> _parts = new List<P>();
+        private Material _mat;
+        private float _gravity, _streak, _drag;
+
+        /// <param name="spread">velocidade aleatória em todas as direções</param>
+        /// <param name="push">velocidade fixa somada (ex.: pra cima)</param>
+        /// <param name="gravity">puxa pra baixo (negativo faz subir)</param>
+        /// <param name="streak">comprimento do risco (segundos de trajetória)</param>
+        public static void Burst(Vector3 pos, Color color, int count, float spread, Vector3 push, float gravity,
+                                 float life, float width, float streak = .04f, float radius = 0f, float glow = 4f, float drag = 0f)
+        {
+            if (count <= 0) return;
+            var go = new GameObject("NantaoParticulas");
+            go.transform.position = pos;
+            var lp = go.AddComponent<LineParticles>();
+            lp._mat = Mats.Glow(color, glow);
+            lp._gravity = gravity;
+            lp._streak = streak;
+            lp._drag = drag;
+            for (int i = 0; i < count; i++)
+            {
+                var lr = FxUtil.Line(go.transform, "P", lp._mat, 2, true);
+                lr.numCapVertices = 0;
+                Vector3 start = pos + (radius > 0f ? UnityEngine.Random.insideUnitSphere * radius : Vector3.zero);
+                lp._parts.Add(new P
+                {
+                    Pos = start,
+                    Vel = UnityEngine.Random.insideUnitSphere * spread + push,
+                    Life = life * UnityEngine.Random.Range(.6f, 1.2f),
+                    Width = width * UnityEngine.Random.Range(.6f, 1.3f),
+                    Lr = lr,
+                });
+            }
+        }
+
+        private void Update()
+        {
+            float dt = Time.deltaTime;
+            bool alive = false;
+            foreach (var p in _parts)
+            {
+                p.Age += dt;
+                float k = p.Age / p.Life;
+                if (k >= 1f) { if (p.Lr.enabled) p.Lr.enabled = false; continue; }
+                alive = true;
+                p.Vel += Vector3.down * _gravity * dt;
+                if (_drag > 0f) p.Vel *= Mathf.Max(0f, 1f - _drag * dt);
+                p.Pos += p.Vel * dt;
+                p.Lr.SetPosition(0, p.Pos);
+                p.Lr.SetPosition(1, p.Pos - p.Vel * _streak);
+                p.Lr.widthMultiplier = p.Width * (1f - k);
+            }
+            if (!alive) Destroy(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            if (_mat != null) Destroy(_mat);
+        }
+    }
+
+    /// <summary>Anel no chão que expande (ou fecha, se <c>from &gt; to</c>) e some.</summary>
+    internal sealed class RingWave : MonoBehaviour
+    {
+        private LineRenderer _ring;
+        private Material _mat;
+        private float _from, _to, _life, _width, _t;
+
+        public static void Spawn(Vector3 pos, Color color, float from, float to, float life, float width, float glow = 4f)
+        {
+            var go = new GameObject("NantaoOnda");
+            go.transform.position = pos + Vector3.up * .05f;
+            var w = go.AddComponent<RingWave>();
+            w._mat = Mats.Glow(color, glow);
+            w._ring = FxUtil.Ring(go.transform, "Anel", w._mat, 1f, width, 48);
+            w._from = from; w._to = to; w._life = Mathf.Max(.05f, life); w._width = width;
+            w.Apply(0f);
+        }
+
+        private void Apply(float k)
+        {
+            float e = 1f - (1f - k) * (1f - k);
+            float r = Mathf.Lerp(_from, _to, e);
+            _ring.transform.localScale = new Vector3(r, 1f, r);
+            _ring.widthMultiplier = _width * (1f - k) / Mathf.Max(.2f, r);
+        }
+
+        private void Update()
+        {
+            _t += Time.deltaTime;
+            float k = Mathf.Clamp01(_t / _life);
+            Apply(k);
+            if (k >= 1f) Destroy(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            if (_mat != null) Destroy(_mat);
+        }
+    }
+
+    /// <summary>Bolinhas de fumaça translúcida subindo, crescendo e sumindo.</summary>
+    internal sealed class SmokePuff : MonoBehaviour
+    {
+        private Material _mat;
+        private Color _color;
+        private float _t, _life, _size, _rise;
+
+        public static void Spawn(Vector3 pos, Color color, float size, float life, float rise)
+        {
+            var mat = Mats.Transparent(new Color(color.r, color.g, color.b, 0f));
+            if (mat == null) return;
+            var s = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var col = s.GetComponent<Collider>();
+            if (col != null) Destroy(col);
+            var mr = s.GetComponent<MeshRenderer>();
+            mr.sharedMaterial = mat;
+            mr.shadowCastingMode = ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+            s.transform.position = pos;
+            s.transform.localScale = Vector3.one * size * .3f;
+            var p = s.AddComponent<SmokePuff>();
+            p._mat = mat; p._color = color; p._life = life; p._size = size; p._rise = rise;
+        }
+
+        private void Update()
+        {
+            _t += Time.deltaTime;
+            float k = Mathf.Clamp01(_t / _life);
+            transform.position += Vector3.up * _rise * Time.deltaTime;
+            transform.localScale = Vector3.one * _size * Mathf.Lerp(.3f, 1.4f, k);
+            float a = Mathf.Sin(Mathf.PI * k) * _color.a;
+            Mats.SetColor(_mat, new Color(_color.r, _color.g, _color.b, a));
+            if (k >= 1f) Destroy(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            if (_mat != null) Destroy(_mat);
+        }
+    }
 }

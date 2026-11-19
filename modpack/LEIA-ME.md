@@ -2,14 +2,14 @@
 
 Perfil pronto para o **r2modman** ou o **Thunderstore Mod Manager**: terror e ambientação, desempenho para PC fraco e o melhor de luas, monstros e itens novos. É **pouca coisa e boa**, não um pacote gigante.
 
-São **29 mods escolhidos** (mais as dependências deles, **69 pacotes** no total, com versões exatas e testadas juntas na v81). A lista com o motivo de cada um está em [`NantaoTerror.roots.txt`](NantaoTerror.roots.txt).
+São **34 mods escolhidos** (mais as dependências deles, **73 pacotes** no total, com versões exatas e testadas juntas na v81). A lista com o motivo de cada um está em [`NantaoTerror.roots.txt`](NantaoTerror.roots.txt).
 
 ## Como instalar
 
 1. Baixe o **NantaoTerror.r2z** (aba **Actions** do GitHub → execução mais recente → **Artifacts** → **NantaoTerror-modpack**).
 2. Abra o **r2modman** ou o **Thunderstore Mod Manager** e escolha o Lethal Company.
 3. Na tela de perfis: **Import / Update** → **From file** → escolha o `NantaoTerror.r2z`.
-   - Ele cria o perfil **NantaoTerror** e baixa os 69 pacotes sozinho. O seu perfil atual não é alterado.
+   - Ele cria o perfil **NantaoTerror** e baixa os 73 pacotes sozinho. O seu perfil atual não é alterado.
 4. Para colocar os mods NANTAO (personagens, chinelo, carrinho, susto) nesse perfil: no pacote **TodosOsMods-com-instalador**, clique duas vezes em **`Instalar-no-perfil-NantaoTerror.bat`**.
 5. **Start modded**. A primeira abertura demora mais, porque os mods geram cache.
 
@@ -53,6 +53,16 @@ São **29 mods escolhidos** (mais as dependências deles, **69 pacotes** no tota
 | Men Stalker | Espreita em silêncio, depois caça |
 | ImmersiveScrap | Sucata nova no estilo do jogo |
 | UsualScrap | Itens novos com funções |
+
+### 🎒 Mochila (8 vagas)
+| Mod | O que faz |
+|---|---|
+| HotbarPlus | **6 vagas comuns** (já configurado), teclas 1–6 para trocar |
+| ReservedFlashlightSlot | Vaga **só de lanterna** (lado direito da tela). **F** liga/desliga sem pôr na mão |
+| ReservedWalkieSlot | Vaga **só de rádio**. **V** fala no rádio sem pôr na mão |
+| InputUtils | Menu do jogo para trocar as teclas dos mods (Configurações → Controles) |
+
+As vagas de lanterna e rádio são **grátis** (não precisa comprar no terminal). Para pegar o item da vaga na mão: segure **Alt** e role o mouse.
 
 ## Atualizar o modpack (para quem mexe no repositório)
 

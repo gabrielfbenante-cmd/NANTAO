@@ -91,6 +91,8 @@ namespace Nantao
         private readonly List<float> _seeds = new List<float>();
         private UnityEngine.Rendering.HighDefinition.HDAdditionalLightData _light;
         private AudioSource _audio;
+        private float _emberTimer, _smokeTimer;
+        private Material _scorch;
 
         public static void Spawn(Vector3 pos, PlayerControllerB owner)
         {
@@ -110,6 +112,16 @@ namespace Nantao
             _red = Mats.Glow(Color.Lerp(c, new Color(0.6f, 0.05f, 0f), 0.5f), 2f);
 
             FxUtil.Ring(transform, "Edge", _red, _radius, 0.06f);
+            // Chão queimado (disco escuro rente ao chão).
+            _scorch = Mats.Glow(new Color(.05f, .03f, .02f), 1f);
+            var disc = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var dc = disc.GetComponent<Collider>();
+            if (dc != null) Destroy(dc);
+            var dmr = disc.GetComponent<MeshRenderer>();
+            dmr.sharedMaterial = _scorch;
+            dmr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            disc.transform.SetParent(transform, false);
+            disc.transform.localScale = new Vector3(_radius * 2.1f, .015f, _radius * 2.1f);
             var rng = new System.Random(GetInstanceID());
             int count = Mathf.Clamp((int)(_radius * _radius * 5f), 18, 60);
             for (int i = 0; i < count; i++)
@@ -158,6 +170,28 @@ namespace Nantao
             }
             if (_light != null) _light.SetIntensity(900f * life * (0.75f + 0.25f * Mathf.PerlinNoise(_t * 9f, 0f)));
             if (_audio != null) _audio.volume = Mathf.Clamp01(ModConfig.Volume.Value) * 0.9f * life;
+
+            // Brasas subindo e fumaça saindo do fogo.
+            if (life > .2f)
+            {
+                _emberTimer -= dt;
+                if (_emberTimer <= 0f)
+                {
+                    _emberTimer = .07f;
+                    float a = UnityEngine.Random.value * Mathf.PI * 2f, r = Mathf.Sqrt(UnityEngine.Random.value) * _radius;
+                    Vector3 p = transform.position + new Vector3(Mathf.Cos(a) * r, .2f, Mathf.Sin(a) * r);
+                    Color ember = Color.Lerp(ModConfig.Fire, new Color(1f, .85f, .3f), UnityEngine.Random.value);
+                    LineParticles.Burst(p, ember, 2, .5f, Vector3.up * UnityEngine.Random.Range(1.5f, 2.8f), -.3f, 1.4f, .016f, .06f, 0f, 5f, .4f);
+                }
+                _smokeTimer -= dt;
+                if (_smokeTimer <= 0f)
+                {
+                    _smokeTimer = .45f;
+                    float a = UnityEngine.Random.value * Mathf.PI * 2f, r = Mathf.Sqrt(UnityEngine.Random.value) * _radius * .8f;
+                    SmokePuff.Spawn(transform.position + new Vector3(Mathf.Cos(a) * r, .7f, Mathf.Sin(a) * r),
+                        new Color(.11f, .1f, .09f, .5f), 1.1f + UnityEngine.Random.value * .6f, 2.4f, .9f);
+                }
+            }
 
             ApplyEffects(dt);
             if (_t >= _duration)
@@ -224,6 +258,7 @@ namespace Nantao
             if (_orange != null) Destroy(_orange);
             if (_yellow != null) Destroy(_yellow);
             if (_red != null) Destroy(_red);
+            if (_scorch != null) Destroy(_scorch);
         }
     }
 }

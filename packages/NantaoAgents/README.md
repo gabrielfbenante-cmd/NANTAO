@@ -19,3 +19,5 @@
 | 10 | Clarão | Granada de luz (cega e atordoa) |
 
 **Todos na lobby precisam ter o mod.** Tudo é ajustável em `BepInEx/config/nantao.agents.cfg`, inclusive os nomes. Aperte F9 no jogo para recarregar.
+
+**Novidades 0.3.0:** sua **vida (0–100) no canto superior esquerdo** (`Vida / MostrarVida`), efeitos e sons novos na Faísca, Âncora e Brasa, e o rádio do ReservedWalkieSlot vai pro **V** automaticamente.

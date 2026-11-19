@@ -2,7 +2,7 @@
   <PropertyGroup>
     <AssemblyName>NantaoAgents</AssemblyName>
     <RootNamespace>Nantao</RootNamespace>
-    <Version>0.2.1</Version>
+    <Version>0.3.0</Version>
   </PropertyGroup>
   <Import Project="..\build\LethalMod.props" />
 </Project>

@@ -17,6 +17,7 @@ namespace Nantao
         private float _resendTimer;
         private float _weight;
         private float _phase;
+        private float _sparkTimer;
         private readonly HandsFx _fx;
 
         public RunAbility(PlayerAgent agent) : base(agent)
@@ -36,6 +37,14 @@ namespace Nantao
             if (_active == on) return;
             _active = on;
             Agent.PlaySfx(on ? Sounds.RunOn : Sounds.RunOff);
+            if (on && P != null)
+            {
+                // Descarga elétrica no chão ao ligar.
+                Vector3 feet = P.transform.position;
+                RingWave.Spawn(feet, ModConfig.Primary, .2f, 2.6f, .45f, .12f, 5f);
+                LineParticles.Burst(feet + Vector3.up * .3f, ModConfig.Primary, 16, 3.5f, Vector3.up * 2f, 9.8f, .5f, .025f, .05f, .3f);
+                LineParticles.Burst(feet + Vector3.up * .3f, ModConfig.Secondary, 6, 3f, Vector3.up * 1.5f, 9.8f, .45f, .02f, .05f, .3f);
+            }
             if (fromLocal)
             {
                 Send(EvState, new AbilityPayload { Flag = on });
@@ -129,6 +138,19 @@ namespace Nantao
             _phase = Mathf.Repeat(_phase + dt * freq * Mathf.PI * 2f, Mathf.PI * 2f);
 
             if (_weight > 0.001f) ApplyPose(move);
+
+            // Faíscas saltando do chão a cada passo correndo.
+            if (_weight > .5f && move > .35f)
+            {
+                _sparkTimer -= dt;
+                if (_sparkTimer <= 0f)
+                {
+                    _sparkTimer = .2f + UnityEngine.Random.value * .08f;
+                    Color c = UnityEngine.Random.value < .7f ? ModConfig.Primary : ModConfig.Secondary;
+                    Vector3 back = -P.transform.forward * 1.5f;
+                    LineParticles.Burst(P.transform.position + Vector3.up * .05f, c, 5, 2f, Vector3.up * 1.4f + back, 12f, .35f, .016f, .045f, .2f);
+                }
+            }
 
             float intensity = _weight * Mathf.Lerp(0.6f, 1f, move);
             _fx.Tick(intensity, intensity, dt);

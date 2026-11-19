@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>CarrinhoCriativo</AssemblyName>
     <RootNamespace>CarrinhoCriativo</RootNamespace>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <!-- A versão do assembly já está declarada em src/CartPlugin.cs. -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>

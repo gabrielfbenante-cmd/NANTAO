@@ -14,11 +14,11 @@ namespace Nantao
                                  _shadowWindup, _shadowArrive, _riftOpen, _fireLoop, _ignite, _howl, _beep;
 
         public static AudioClip RunHum => _runHum ?? (_runHum = MakeHum());
-        public static AudioClip RunOn => _runOn ?? (_runOn = MakeZap(true));
+        public static AudioClip RunOn => _runOn ?? (_runOn = MakeCharge());
         public static AudioClip RunOff => _runOff ?? (_runOff = MakeZap(false));
-        public static AudioClip AnchorPlace => _anchorPlace ?? (_anchorPlace = MakeClink());
+        public static AudioClip AnchorPlace => _anchorPlace ?? (_anchorPlace = MakeAnchorLock());
         public static AudioClip TpWindup => _tpWindup ?? (_tpWindup = MakeRise(0.6f));
-        public static AudioClip TpArrive => _tpArrive ?? (_tpArrive = MakeWhoosh(0.7f, true));
+        public static AudioClip TpArrive => _tpArrive ?? (_tpArrive = MakeWarp());
         public static AudioClip Fail => _fail ?? (_fail = MakeFail());
         public static AudioClip ReviveLoop => _reviveLoop ?? (_reviveLoop = MakeChoir());
         public static AudioClip ReviveDone => _reviveDone ?? (_reviveDone = MakeArp());
@@ -29,7 +29,7 @@ namespace Nantao
         public static AudioClip ShadowArrive => _shadowArrive ?? (_shadowArrive = MakeWhoosh(0.6f, false));
         public static AudioClip RiftOpen => _riftOpen ?? (_riftOpen = MakeWarble());
         public static AudioClip FireLoop => _fireLoop ?? (_fireLoop = MakeFire());
-        public static AudioClip Ignite => _ignite ?? (_ignite = MakeIgnite());
+        public static AudioClip Ignite => _ignite ?? (_ignite = MakeShatterIgnite());
         public static AudioClip Howl => _howl ?? (_howl = MakeHowl());
         public static AudioClip Beep => _beep ?? (_beep = MakeBeep());
 
@@ -264,5 +264,114 @@ namespace Nantao
 
         private static AudioClip MakeBeep() => Build("NantaoBeep", 0.07f, (t, i, r) =>
             Mathf.Sign(Mathf.Sin(TwoPi * 1900f * t)) * 0.18f * (1f - t / 0.07f));
+    
+        // ------------------------------------------------------------------ sons caprichados (originais)
+
+        /// <summary>Faísca: carga elétrica subindo, estalos cada vez mais rápidos e um "estalo" final com grave.</summary>
+        private static AudioClip MakeCharge()
+        {
+            const float dur = .75f;
+            double ph = 0, ph2 = 0;
+            float lp = 0;
+            return Build("NantaoCharge", dur, (t, i, r) =>
+            {
+                float k = t / dur;
+                double f = 110 + 900 * k * k;
+                ph += f / Rate; ph -= Math.Floor(ph);
+                ph2 += f * 1.5 / Rate; ph2 -= Math.Floor(ph2);
+                float saw = (float)(ph * 2 - 1) * .35f + (float)(ph2 * 2 - 1) * .2f;
+                float buildEnv = k < .62f ? Mathf.SmoothStep(0f, 1f, k / .62f) : 0f;
+                // estalos: probabilidade cresce com o tempo
+                float crack = r.NextDouble() < .0008 + .006 * k ? (float)(r.NextDouble() * 2 - 1) : 0f;
+                lp += (Noise(r) - lp) * .3f;
+                // "SNAP" final
+                float st = t - .62f;
+                float snap = st > 0 ? (Noise(r) * Mathf.Exp(-st * 40f) * 1.2f + Mathf.Sin(TwoPi * 58f * st) * Mathf.Exp(-st * 9f) * 1.3f) : 0f;
+                float x = saw * buildEnv * .8f + crack * .9f + lp * buildEnv * .3f + snap;
+                return (float)Math.Tanh(x * 1.6f) * .95f;
+            }, 61);
+        }
+
+        /// <summary>Âncora: "clinc" metálico + duas notas eletrônicas de trava + zumbido grave.</summary>
+        private static AudioClip MakeAnchorLock() => Build("NantaoAnchorLock", .9f, (t, i, r) =>
+        {
+            float metal = .45f * Mathf.Sin(TwoPi * 1240f * t) * Mathf.Exp(-t * 7f)
+                        + .3f * Mathf.Sin(TwoPi * 1873f * t) * Mathf.Exp(-t * 9f)
+                        + .2f * Mathf.Sin(TwoPi * 2617f * t) * Mathf.Exp(-t * 12f)
+                        + Noise(r) * .35f * Mathf.Exp(-t * 70f);
+            float b1 = t > .1f && t < .17f ? Mathf.Sin(TwoPi * 1320f * t) * .25f : 0f;
+            float b2 = t > .2f && t < .3f ? Mathf.Sin(TwoPi * 1760f * t) * .25f : 0f;
+            float hum = Mathf.Sin(TwoPi * 110f * t) * .25f * Mathf.Exp(-t * 3f) * Mathf.Min(1f, t * 20f);
+            return (float)Math.Tanh((metal + b1 + b2 + hum) * 1.3f) * .9f;
+        }, 62);
+
+        /// <summary>Teleporte: sopro "ao contrário" que cresce, corta seco num grave, e brilho no final.</summary>
+        private static AudioClip MakeWarp()
+        {
+            const float dur = 1.1f, cut = .32f;
+            float lp = 0;
+            var data = new float[(int)(Rate * dur)];
+            var r = new System.Random(63);
+            for (int i = 0; i < data.Length; i++)
+            {
+                float t = i / (float)Rate;
+                lp += (Noise(r) - lp) * Mathf.Lerp(.02f, .35f, Mathf.Clamp01(t / cut));
+                float swell = t < cut ? lp * Mathf.Pow(t / cut, 2f) * 1.6f : 0f;
+                float st = t - cut;
+                float boom = st > 0 ? Mathf.Sin(TwoPi * Mathf.Lerp(70f, 38f, Mathf.Min(1f, st * 3f)) * st) * Mathf.Exp(-st * 4.5f) * 1.2f : 0f;
+                float shimmer = st > 0 ? (Mathf.Sin(TwoPi * 2093f * t) * .14f + Mathf.Sin(TwoPi * 3136f * t) * .09f)
+                                         * Mathf.Exp(-st * 3.5f) * (.7f + .3f * Mathf.Sin(TwoPi * 14f * t)) : 0f;
+                data[i] = swell + boom + shimmer;
+            }
+            var dry = (float[])data.Clone();
+            int d1 = (int)(.12f * Rate), d2 = (int)(.27f * Rate);
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (i >= d1) data[i] += dry[i - d1] * .3f;
+                if (i >= d2) data[i] += dry[i - d2] * .15f;
+                data[i] = (float)Math.Tanh(data[i] * 1.2f) * .95f;
+            }
+            var clip = AudioClip.Create("NantaoWarp", data.Length, 1, Rate, false);
+            clip.SetData(data, 0);
+            return clip;
+        }
+
+        /// <summary>Brasa: garrafa estilhaçando e, logo depois, o fogo pegando ("vush" + crepitar).</summary>
+        private static AudioClip MakeShatterIgnite()
+        {
+            const float dur = 1.6f;
+            var r0 = new System.Random(64);
+            int partials = 24;
+            var freq = new float[partials]; var decay = new float[partials]; var start = new float[partials];
+            for (int p = 0; p < partials; p++)
+            {
+                freq[p] = 2200f + (float)r0.NextDouble() * 6500f;
+                decay[p] = 18f + (float)r0.NextDouble() * 40f;
+                start[p] = (float)r0.NextDouble() * .09f;
+            }
+            float lp = 0, pop = 0;
+            return Build("NantaoShatterIgnite", dur, (t, i, r) =>
+            {
+                float glass = 0f;
+                for (int p = 0; p < partials; p++)
+                {
+                    float pt = t - start[p];
+                    if (pt > 0) glass += Mathf.Sin(TwoPi * freq[p] * pt) * Mathf.Exp(-pt * decay[p]) * .09f;
+                }
+                glass += Noise(r) * Mathf.Exp(-t * 35f) * .5f;
+                float it = t - .12f;
+                float fire = 0f;
+                if (it > 0)
+                {
+                    lp += (Noise(r) - lp) * Mathf.Lerp(.35f, .06f, Mathf.Min(1f, it / 1.2f));
+                    if (r.NextDouble() < .0015) pop = .6f + (float)r.NextDouble() * .4f;
+                    pop *= .985f;
+                    fire = lp * 1.5f * Mathf.Min(1f, it * 8f) * Mathf.Exp(-it * 1.6f)
+                         + Mathf.Sin(TwoPi * 52f * it) * Mathf.Exp(-it * 7f) * .7f
+                         + Noise(r) * pop * .4f;
+                }
+                return (float)Math.Tanh((glass + fire) * 1.4f) * .9f;
+            }, 65);
+        }
     }
 }

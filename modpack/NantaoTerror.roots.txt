@@ -33,3 +33,9 @@ Sparble-FacelessStalker                   # monstro: o perseguidor sem rosto
 YaBoiDucki-men_stalker                    # monstro: espreita e caçada
 XuXiaolan-ImmersiveScrap                  # sucata nova no estilo do jogo
 etherealemil-UsualScrap                   # itens novos com funções
+# --- Mochila: 6 vagas comuns + 1 só de lanterna + 1 só de rádio (8 no total)
+FlipMods-HotbarPlus                       # 6 vagas comuns (config já vem com NumHotbarSlots = 6)
+FlipMods-ReservedItemSlotCore             # base das vagas reservadas (grátis, sem comprar)
+FlipMods-ReservedFlashlightSlot           # vaga só de lanterna — F liga/desliga sem pôr na mão
+FlipMods-ReservedWalkieSlot               # vaga só de rádio — V fala (o NantaoAgents troca do X pro V)
+Rune580-LethalCompany_InputUtils          # menu pra trocar teclas dos mods

@@ -33,7 +33,9 @@ Os outros três artifacts (**NantaoAgents**, **ChineloComCriativo**, **CarrinhoC
 | F9 | NantaoAgents | Recarregar config |
 | Clique esquerdo / G / E | Chinelo | Arremessar / largar / pegar |
 | F6 / F7 | Criativo | Entregar chinelo / liga-desliga criativo |
-| F5 / E / R / T / V | Carrinho | Chamar / empurrar / guardar / descarregar / passageiro |
+| F5 / E / R / T / C | Carrinho | Chamar / empurrar / guardar / descarregar / passageiro |
+| F | Modpack (ReservedFlashlightSlot) | Liga/desliga a lanterna sem pôr na mão |
+| V | Modpack (ReservedWalkieSlot) | Falar no rádio sem pôr na mão |
 | F10 | Susto | Dispara um susto de teste |
 | F8 | FPSAdaptativo (instalado separado) | — |
 
