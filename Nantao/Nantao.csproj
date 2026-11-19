@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>NeonRun</AssemblyName>
-    <RootNamespace>NeonRun</RootNamespace>
-    <Version>0.1.0</Version>
+    <AssemblyName>NantaoAgents</AssemblyName>
+    <RootNamespace>Nantao</RootNamespace>
+    <Version>0.2.0</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <DebugType>embedded</DebugType>

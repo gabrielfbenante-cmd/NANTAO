@@ -1,91 +1,100 @@
-# NANTAO: NeonRun (mod de Lethal Company)
+# NANTAO: NantaoAgents (mod de Lethal Company)
 
-Corrida elétrica inspirada na sensação de "correr com energia nas mãos". Animação, efeitos e sons foram **feitos do zero**, sem nada extraído de outro jogo.
+10 personagens com habilidades. Você escolhe um no começo, **cada personagem só pode ser de um jogador**, e quem preferir pode ir sem personagem.
 
-## O que o mod faz
+Nomes, visuais e sons foram **feitos do zero**, só inspirados em habilidades de jogos de tiro tático, sem nada extraído de outro jogo. Os nomes podem ser trocados na config.
 
-| | Você vê | Seus amigos veem |
-|---|---|---|
-| Braços balançando com mãos retas | ✅ 1ª pessoa | ✅ no seu personagem |
-| Pernas na animação de corrida | ✅ | ✅ |
-| Raios, brilho, luz e rastro nas mãos | ✅ | ✅ |
-| Zumbido elétrico e estalos | ✅ | ✅ (som 3D) |
-| Velocidade extra | ✅ | ✅ (você se move mais rápido) |
-| FOV maior, vinheta e linhas de velocidade | ✅ | — (só na sua tela) |
-| Barra de energia | ✅ | — |
+## Controles
 
-**Tecla: X** (liga/desliga). A energia dura 8 s e recarrega em 10 s; tudo é configurável.
+| Tecla | O que faz |
+|---|---|
+| **F1** | Abre/fecha o menu de personagens (só com a nave em órbita) |
+| **X** | Usa a habilidade do seu personagem |
+| **F8** | Recarrega a config com o jogo aberto |
 
-> ⚠️ **Todo mundo na lobby precisa ter o mod instalado.**
+O menu abre sozinho quando você entra na nave sem personagem. Clique numa carta para escolher. As cartas mostram quem já pegou cada personagem.
+
+## Os 10 personagens
+
+| # | Nome | Habilidade | Limite |
+|---|---|---|---|
+| 1 | **Faísca** | **X** liga/desliga a corrida elétrica: braços balançando com raios nas mãos, mais velocidade | Energia: 8 s, recarrega em 10 s |
+| 2 | **Âncora** | **X** crava a âncora no chão. **X** de novo: volta pra ela. **Segurar X**: recolhe | Alcance 60 m · recarga 25 s |
+| 3 | **Aurora** | **Segure X** perto do corpo de um amigo para reviver (fique parado) | 1 por rodada |
+| 4 | **Breu** | **X**: some nas sombras e reaparece no ponto onde você mira | Até 18 m · recarga 12 s |
+| 5 | **Névoa** | **X** manda uma fumaça onde você mira. Bloqueia a visão de jogadores **e de monstros** | 2 cargas · 30 s cada |
+| 6 | **Brasa** | **X** arremessa um coquetel de fogo: queima monstros e **cura você** dentro do seu fogo | Recarga 25 s |
+| 7 | **Uivo** | **X** solta um lobo de energia que corre pelo chão e dá o bote em monstros, atordoando. **X** de novo: bote na hora | Recarga 30 s |
+| 8 | **Fenda** | **X** lança uma fenda que desliza pelo chão. **X** de novo: teleporta até ela | Recarga 25 s |
+| 9 | **Salva** | **X** joga 3 bombinhas no chão onde você mira; elas piscam e explodem (explosão do próprio jogo) | 2 por rodada |
+| 10 | **Clarão** | **X** arremessa uma granada de luz (a do próprio jogo): cega quem olhar e atordoa monstros | Recarga 20 s |
+
+Todos os efeitos (raios, âncora, fogo, lobo, fumaça etc.) **aparecem para todo mundo na lobby**.
+
+> ⚠️ **Todos na lobby precisam ter o mod.** As regras (um personagem por jogador, troca só em órbita) valem pela config do **host**.
+
+### Fogo amigo
+
+Por padrão, fogo e bombinhas **não machucam** jogadores. Para ligar: `DanoEmAmigos = true` nas seções `Brasa (fogo)` e `Salva (bombinhas)`.
+O **Clarão** usa a granada de luz do jogo, que cega **qualquer um** que olhar, inclusive você. Para que ele só atordoe monstros: `Clarao (granada de luz) / CegaJogadores = false`.
 
 ## Como baixar
 
 1. No GitHub, abra a aba **Actions** deste repositório.
-2. Clique na execução mais recente de **Build NeonRun** (precisa estar verde ✅).
-3. Lá embaixo, em **Artifacts**, baixe **NeonRun**. Vem um `.zip`.
+2. Clique na execução mais recente de **Build NantaoAgents** (precisa estar verde ✅).
+3. Em **Artifacts**, baixe **NantaoAgents** (vem um `.zip`).
 
-## Como instalar (jeito fácil: r2modman / Thunderstore Mod Manager)
+## Como instalar (r2modman / Thunderstore Mod Manager)
 
-1. Instale o **r2modman** (ou o Thunderstore Mod Manager) e selecione o Lethal Company.
-2. Crie ou escolha um perfil.
-3. **Settings → Import local mod** → escolha o `NeonRun.zip` que você baixou.
-   - O BepInEx é instalado automaticamente como dependência.
-4. Clique em **Start modded**.
+1. Abra o r2modman e selecione o Lethal Company.
+2. **Settings → Import local mod** → escolha o `.zip`.
+3. **Start modded**.
+
+Se você usava a versão antiga (**NeonRun**), desinstale ela. A corrida agora é o personagem Faísca.
 
 ### Instalação manual
 
-1. Instale o [BepInExPack do Lethal Company](https://thunderstore.io/c/lethal-company/p/BepInEx/BepInExPack/) na pasta do jogo.
-2. Abra o jogo uma vez e feche (para o BepInEx criar as pastas).
-3. Copie `NeonRun.dll` para `Lethal Company/BepInEx/plugins/`.
+1. Instale o [BepInExPack](https://thunderstore.io/c/lethal-company/p/BepInEx/BepInExPack/).
+2. Copie `NantaoAgents.dll` para `Lethal Company/BepInEx/plugins/`.
 
-## Ajustando ao vivo (para ficar do jeito que você quer)
+## Configuração
 
-Depois de abrir o jogo uma vez com o mod, aparece o arquivo:
+Arquivo: `BepInEx/config/nantao.agents.cfg` (aparece depois de abrir o jogo uma vez). Edite, salve e aperte **F8** no jogo.
 
-```
-BepInEx/config/nantao.neonrun.cfg
-```
+- **Geral**: teclas, troca durante a rodada, volume, efeitos de tela.
+- **Personagens**: o nome exibido de cada uma das 10 vagas.
+- Uma seção por personagem: alcance, recarga, dano, cores etc.
 
-Edite com o Bloco de Notas, salve e aperte **F8** dentro do jogo. A mudança vale na hora, sem reiniciar.
-
-Os ajustes que mais mudam a sensação:
-
-| Seção | Opção | O que faz |
-|---|---|---|
-| Animacao | `FrequenciaBalanco` | Velocidade do balanço dos braços |
-| Animacao | `AmplitudeBalanco` | Quanto os braços vão pra frente e pra trás |
-| Animacao | `PrimeiraPessoaAltura` | **Aumente se as mãos não aparecem na tela** |
-| Animacao | `PrimeiraPessoaFrente` | Braços mais projetados pra frente |
-| Animacao | `PrimeiraPessoaAbertura` | Braços mais abertos ou mais fechados |
-| Animacao | `DedosRetos` | Mão reta (1) ou natural (0) |
-| Visual | `CorPrincipal` / `CorSecundaria` | Cores da energia (hex) |
-| Visual | `Brilho`, `RaiosPorMao`, `TamanhoRaios` | Intensidade dos raios |
-| Visual | `AumentoFOV` | Quanto a visão "abre" correndo |
-| Movimento | `VelocidadeExtra` | Velocidade a mais (m/s) |
-| Movimento | `DuracaoEnergia` / `TempoRecarga` | Quanto tempo dura e recarrega |
-| Controles | `Tecla` | Trocar o X por outra tecla (ex: `<Keyboard>/q`) |
+Se as mãos da Faísca não aparecem na tela, aumente `Faisca (corrida) / PrimeiraPessoaAltura`.
+Se a fumaça da Névoa não aparecer, mude `Nevoa (fumaca) / Modo` para `esferas`.
 
 ## Se algo ficar estranho
 
-1. Na config, coloque `Debug / LogDetalhado = true`.
-2. Abra o jogo, ligue a corrida e feche.
-3. Mande o arquivo `BepInEx/LogOutput.log`. Ele mostra quais ossos do braço o mod encontrou e quais animações o jogo tem, e com isso dá para corrigir.
+1. Na config: `Debug / LogDetalhado = true`.
+2. Jogue, use as habilidades e feche o jogo.
+3. Mande o arquivo `BepInEx/LogOutput.log`.
 
 ## Como funciona (técnico)
 
-- **BepInEx + Harmony**: o mod se "pendura" no `PlayerControllerB` do jogo.
-- **Pose dos braços**: depois da animação normal do jogo, cada osso (ombro → antebraço → mão → dedos) é girado para apontar numa direção calculada a cada frame (balanço em seno). Funciona igual no modelo de 1ª pessoa e no corpo que os outros veem.
-- **Rede**: mensagens nomeadas do Netcode (`cliente → host → todos`) avisam quem ligou ou desligou. O estado é reenviado a cada 1 s, assim quem entra depois também vê.
-- **Efeitos**: `LineRenderer` (raios), `TrailRenderer` (rastro) e luz HDRP, todos criados por código. Os sons são sintetizados na hora.
+- **BepInEx + Harmony**: um `PlayerAgent` é adicionado a cada `PlayerControllerB`; cada personagem é uma classe `Ability` em `Nantao/Abilities/`.
+- **Rede**: mensagens nomeadas do Netcode. A escolha de personagem passa pelo host, que garante um por jogador e reenvia a lista a cada 2 s (para quem entra depois). Os eventos das habilidades vão do dono para o host e do host para todos.
+- **Animação**: pose procedural dos braços (1ª e 3ª pessoa), aplicada por cima da animação do jogo.
+- **Reviver**: desfaz o estado de morte do jogador em todos os computadores, com base no que o jogo faz no fim da rodada.
+- **Fumaça**: neblina volumétrica do HDRP e/ou esferas translúcidas; um patch nas checagens de visão dos monstros (`EnemyAI.CheckLineOfSight*`) faz a fumaça bloquear.
+- **Explosões e clarão**: usam `Landmine.SpawnExplosion` e `StunGrenadeItem.StunExplosion` do próprio jogo.
+
+### Adicionar ou trocar um personagem
+
+1. Crie uma classe em `Nantao/Abilities/` herdando de `Ability`.
+2. Registre em `Nantao/Characters.cs`.
+3. Adicione as opções em `Nantao/ModConfig.cs`.
 
 ### Compilar
 
 ```bash
-# Normal (feeds nuget.org + nuget.bepinex.dev)
-dotnet build NeonRun/NeonRun.csproj -c Release
-
-# Sem acesso ao feed do BepInEx: aponte para uma pasta com BepInEx.dll e 0Harmony.dll
-dotnet build NeonRun/NeonRun.csproj -c Release -p:OfflineLibDir=/caminho/libs
+dotnet build Nantao/Nantao.csproj -c Release
+# sem acesso ao feed do BepInEx:
+dotnet build Nantao/Nantao.csproj -c Release -p:OfflineLibDir=/pasta/com/BepInEx.dll/e/0Harmony.dll
 ```
 
 Compilado contra Lethal Company **v81** (`LethalCompany.GameLibs.Steam 81.0.5-ngd.0`).

@@ -2,14 +2,14 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 
-namespace NeonRun
+namespace Nantao
 {
     [BepInPlugin(Guid, Name, Version)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string Guid = "nantao.neonrun";
-        public const string Name = "NeonRun";
-        public const string Version = "0.1.0";
+        public const string Guid = "nantao.agents";
+        public const string Name = "NantaoAgents";
+        public const string Version = "0.2.0";
 
         internal static Plugin Instance;
         internal static ManualLogSource Log;
@@ -21,19 +21,19 @@ namespace NeonRun
             Instance = this;
             Log = Logger;
 
-            NeonConfig.Bind(Config);
+            ModConfig.Bind(Config);
 
             _harmony = new Harmony(Guid);
             _harmony.PatchAll(typeof(Plugin).Assembly);
 
-            Log.LogInfo($"{Name} {Version} carregado. Tecla: {NeonConfig.KeyBinding.Value}");
+            Log.LogInfo($"{Name} {Version} carregado. Habilidade: {ModConfig.AbilityKey.Value} | Menu: {ModConfig.MenuKey.Value}");
         }
 
-        /// <summary>Recarrega o arquivo de config com o jogo aberto (tecla F8 por padrão).</summary>
+        /// <summary>Recarrega o arquivo de config com o jogo aberto (F8 por padrão).</summary>
         internal static void ReloadConfig()
         {
             Instance.Config.Reload();
-            NeonConfig.RaiseReloaded();
+            ModConfig.RaiseReloaded();
             Log.LogInfo("Config recarregada.");
         }
     }

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace NeonRun
+namespace Nantao
 {
     /// <summary>
     /// Um braço encontrado no esqueleto do jogo: ombro(upper) -> antebraço(lower) -> mão -> dedos.
@@ -89,7 +89,7 @@ namespace NeonRun
                 else if (!left && rig.Right == null) rig.Right = arm;
             }
 
-            if (NeonConfig.DebugLog.Value)
+            if (ModConfig.DebugLog.Value)
             {
                 Plugin.Log.LogInfo($"[{label}] ossos: {string.Join(", ", list.Select(b => b.name))}");
                 Plugin.Log.LogInfo($"[{label}] esquerdo: {Describe(rig.Left)} | direito: {Describe(rig.Right)}");

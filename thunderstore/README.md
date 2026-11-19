@@ -1,14 +1,21 @@
-# NeonRun
+# NantaoAgents
 
-Corrida elétrica para o Lethal Company.
+10 personagens com habilidades para o Lethal Company. **Cada personagem só pode ser de um jogador na lobby.**
 
-- **X** liga/desliga a corrida.
-- Velocidade extra, com uma barra de energia que acaba e recarrega.
-- Braços com animação de corrida em **1ª pessoa** e **3ª pessoa** (os amigos veem).
-- Raios elétricos, brilho, luz e rastro nas mãos.
-- Zumbido elétrico e estalos ao ligar e desligar (os amigos ouvem).
-- Na sua tela: FOV aumenta, vinheta elétrica e linhas de velocidade.
+- **F1**: abre o menu de personagens (com a nave em órbita).
+- **X**: usa a habilidade.
 
-**Todos na lobby precisam ter o mod.**
+| # | Personagem | Habilidade |
+|---|---|---|
+| 1 | Faísca | Corrida elétrica com energia nas mãos |
+| 2 | Âncora | Coloca uma âncora; X de novo volta pra ela |
+| 3 | Aurora | Segure X no corpo de um amigo pra reviver |
+| 4 | Breu | Some nas sombras e reaparece onde mira |
+| 5 | Névoa | Fumaça onde você mira (monstros não enxergam) |
+| 6 | Brasa | Coquetel de fogo (queima monstros, cura você) |
+| 7 | Uivo | Lobo de energia que atordoa monstros |
+| 8 | Fenda | Fenda que anda pelo chão; X teleporta até ela |
+| 9 | Salva | Bombinhas no chão (2 por rodada) |
+| 10 | Clarão | Granada de luz (cega e atordoa) |
 
-Tudo é ajustável em `BepInEx/config/nantao.neonrun.cfg`. Aperte **F8** no jogo para recarregar o arquivo sem fechar.
+**Todos na lobby precisam ter o mod.** Tudo é ajustável em `BepInEx/config/nantao.agents.cfg`, inclusive os nomes. Aperte F8 no jogo para recarregar.

@@ -1,8 +1,8 @@
 {
-  "name": "NeonRun",
-  "version_number": "0.1.0",
+  "name": "NantaoAgents",
+  "version_number": "0.2.0",
   "website_url": "",
-  "description": "Corrida elétrica: aperte X para correr com energia nas mãos, braços animados em 1ª e 3ª pessoa, sincronizado com a lobby.",
+  "description": "10 personagens com habilidades (corrida, teleportes, reviver, fumaça, fogo, lobo, bombinhas, clarão). Um de cada por lobby. F1 escolhe, X usa.",
   "dependencies": [
     "BepInEx-BepInExPack-5.4.2100"
   ]
