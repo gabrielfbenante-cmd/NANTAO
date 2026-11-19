@@ -1,0 +1,35 @@
+# Mods escolhidos para o modpack NantaoTerror (as dependências são resolvidas automaticamente).
+# Formato: Autor-Nome   # comentário
+BepInEx-BepInExPack                       # base
+# --- Terror / ambientação
+qwbarch-Mirage                            # monstros imitam a voz dos amigos
+AzureCore-MirageNullPrefabFix             # correção do Mirage na v81
+LethalResonance-LETHALRESONANCE           # 700+ sons mais assustadores
+ButteryStancakes-EnemySoundFixes          # corrige sons de monstros
+Schizophrenics-SchizophreniaMod           # alucinações sonoras no prédio
+CptDristyler-InsanityModV81               # sanidade: visão em túnel, tremor, vozes
+Juzlus-FlickeringFlashlight               # lanterna pisca com bateria fraca
+SleepyMiles-ImmersiveVisorFork            # visor com rachaduras, sangue, neblina
+ButteryStancakes-HalloweenAction          # trilha de ação mais sombria
+DemonMae-Black_Fog_Weather                # clima de névoa negra
+# --- Desempenho
+fumiko-CullFactory                        # não renderiza salas que você não vê
+Zaggy1024-PathfindingLagFix               # pathfinding dos monstros em thread
+DiFFoZ-LethalPerformance                  # cache de buscas frequentes
+JacobG5-ReverbTriggerFix                  # otimiza zonas de eco
+Scoops-LethalSponge                       # renderização e memória
+mattymatty-EntranceTeleportOptimizations  # otimiza portas de entrada
+EliteMasterEric-CleanerLogs               # menos spam de log
+mrov-LightsOut                            # desliga luzes de itens na nave
+linkoid-DissonanceLagFix                  # menos travada do chat de voz
+XuXiaolan-ReXuvination                    # otimiza colisões
+# --- Conteúdo (poucos e bons)
+Magic_Wesley-Acidir                       # lua: pântano escuro e mortal
+Magic_Wesley-Infernis                     # lua: vulcânica (difícil)
+AudioKnight-StarlancerMoons               # 4 luas (grátis, intermediária, difícil, escondida)
+x753-Mimics                               # monstro: saídas de incêndio falsas
+zealsprince-Locker                        # monstro: ameaça de percepção
+Sparble-FacelessStalker                   # monstro: o perseguidor sem rosto
+YaBoiDucki-men_stalker                    # monstro: espreita e caçada
+XuXiaolan-ImmersiveScrap                  # sucata nova no estilo do jogo
+etherealemil-UsualScrap                   # itens novos com funções

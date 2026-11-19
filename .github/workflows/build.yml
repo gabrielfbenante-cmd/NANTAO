@@ -58,13 +58,23 @@ jobs:
           cp out/NantaoAgents/NantaoAgents.dll $P/NantaoAgents/
           cp out/ChineloComCriativo/*.dll $P/ChineloCriativo/
           cp out/CarrinhoCriativo/CarrinhoCriativo.dll $P/CarrinhoCriativo/
-          cp install/Instalar.bat install/Instalar-no-jogo.ps1 install/LEIA-ME.txt out/TodosOsMods/
+          cp install/Instalar.bat install/Instalar-no-perfil-NantaoTerror.bat install/Instalar-no-jogo.ps1 install/LEIA-ME.txt out/TodosOsMods/
+
+          # Modpack (perfil r2modman / Thunderstore Mod Manager)
+          mkdir -p out/Modpack
+          python3 tools/make_r2z.py modpack/NantaoTerror.mods.json NantaoTerror out/Modpack/NantaoTerror.r2z
+          cp modpack/LEIA-ME.md out/Modpack/
           find out -maxdepth 4 -type f | sort
 
       - uses: actions/upload-artifact@v4
         with:
           name: TodosOsMods-com-instalador
           path: out/TodosOsMods/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NantaoTerror-modpack
+          path: out/Modpack/
 
       - uses: actions/upload-artifact@v4
         with:

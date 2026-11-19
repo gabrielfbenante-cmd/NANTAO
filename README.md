@@ -8,6 +8,10 @@ Este repositório tem **três mods** (quatro plugins):
 | **ChineloComCriativo** | `ChineloCriativo/` | `ChineloArremessavel.dll` + `ModoCriativoTeste.dll` | Chinelo que arremessa e desmaia quem acerta (10% de explosão 5x) + modo criativo |
 | **CarrinhoCriativo** | `CarrinhoCriativo/` | `CarrinhoCriativo.dll` | Carrinho grande (20 itens + passageiro) que pega embalo em descidas |
 
+## Modpack NantaoTerror (Thunderstore)
+
+Perfil pronto para o r2modman/Thunderstore Mod Manager com **29 mods escolhidos a dedo**: terror e ambientação (vozes imitadas, sanidade, sons), **desempenho para PC fraco** (inclusive o CullFactory, que não renderiza salas que você não vê) e o melhor de luas, monstros e itens novos. Veja [`modpack/LEIA-ME.md`](modpack/LEIA-ME.md).
+
 ## Instalar tudo de uma vez (recomendado)
 
 1. No GitHub, abra **Actions**, clique na execução mais recente de **Build NANTAO mods** (precisa estar verde ✅).
@@ -134,5 +138,7 @@ ChineloCriativo/     chinelo + modo criativo (código e testes)
 CarrinhoCriativo/    carrinho (código e testes)
 packages/            manifest, README e ícone de cada pacote Thunderstore
 install/             instalador para Windows (Instalar.bat)
+modpack/             modpack NantaoTerror (lista de mods e versões)
+tools/               scripts do modpack (resolver dependências, gerar .r2z)
 build/               configuração de compilação compartilhada
 ```
