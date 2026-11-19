@@ -3,7 +3,7 @@
 Chinelo arremessável que voa reto na direção da mira.
 
 - **Acertou alguém (90%)** → a pessoa é **arremessada longe e desmaia**: o corpo fica mole e cai no chão, a tela dela escurece, e depois de alguns segundos ela **levanta** onde o corpo caiu. O chinelo cai no chão e pode ser pego de novo.
-- **10% de chance de explodir** (ao bater ou no fim do alcance) → explosão **5x mais forte** que a original: muito mais dano em monstros, raio maior, efeito triplo, tremida de tela forte. Quem estiver perto voa e desmaia (sem perder vida, por padrão).
+- **10% de chance de explodir** (ao bater ou no fim do alcance) → explosão **5x mais forte** que a original: muito mais dano em monstros e raio maior. **Visual 3x maior**: explosões do jogo ampliadas, bola de fogo, onda de choque no chão, estilhaços, fumaça e clarão na tela. **Estrondo** longo e grave, ouvido de longe. Quem estiver perto voa e desmaia (sem perder vida, por padrão).
 
 Inclui o **Modo Criativo** para testes: o host recebe chinelos de graça.
 
@@ -25,6 +25,8 @@ Inclui o **Modo Criativo** para testes: o host recebe chinelos de graça.
 | Explosao | Multiplicador | 5 | Quantas vezes mais forte que a explosão original |
 | Explosao | Raio | 6 m | Raio do dano em monstros e do arremesso de jogadores |
 | Explosao | DanoEmJogadores | 0 | Dano da explosão em jogadores (0 = só arremessa e desmaia) |
+| Explosao | TamanhoVisual | 3 | Tamanho do efeito (1 = explosão normal do jogo) |
+| Explosao | Volume | 1 | Volume do estrondo (0 a 1) |
 
 As decisões (acertou ou não, explodiu ou não) são do **host**, com a config dele.
 

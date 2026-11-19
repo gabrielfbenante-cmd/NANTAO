@@ -284,24 +284,8 @@ namespace ChineloArremessavel
 
         private void PlayExplosion(Vector3 position)
         {
-            // Só o visual do jogo (a função de mina do jogo também machucaria jogadores).
-            // Versão forte: explosão central + anel de explosões em volta.
-            if (StartOfRound.Instance != null && StartOfRound.Instance.explosionPrefab != null)
-            {
-                int extra = Mathf.Clamp(Mathf.RoundToInt(explodeMultiplier.Value) - 1, 0, 6);
-                for (int i = 0; i <= extra; i++)
-                {
-                    Vector3 offset = Vector3.zero;
-                    if (i > 0)
-                    {
-                        float angle = i * Mathf.PI * 2f / extra;
-                        offset = new Vector3(Mathf.Cos(angle), .3f, Mathf.Sin(angle)) * Mathf.Min(2.5f, blastRadius.Value * .35f);
-                    }
-                    GameObject effect = UnityEngine.Object.Instantiate(StartOfRound.Instance.explosionPrefab, position + offset, Quaternion.Euler(-90f, 0, 0));
-                    effect.SetActive(true); UnityEngine.Object.Destroy(effect, 5f);
-                }
-            }
-            ChineloBehaviour.PlayBoom(position, true);
+            // Visual + som grandes (só efeito: a função de mina do jogo também machucaria jogadores).
+            BigExplosionFx.Spawn(position, explodeVisualScale.Value, explodeVolume.Value);
             PlayerControllerB local = GameNetworkManager.Instance != null ? GameNetworkManager.Instance.localPlayerController : null;
             if (HUDManager.Instance != null && local != null)
             {

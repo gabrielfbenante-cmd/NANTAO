@@ -15,6 +15,7 @@
     <Compile Include="src/ChineloModel.cs" />
     <Compile Include="src/FlightRules.cs" />
     <Compile Include="src/Knockout.cs" />
+    <Compile Include="src/ExplosionFx.cs" />
   </ItemGroup>
   <Import Project="..\build\LethalMod.props" />
 </Project>

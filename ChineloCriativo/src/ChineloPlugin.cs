@@ -34,6 +34,8 @@ namespace ChineloArremessavel
         internal ConfigEntry<float> knockForce;
         internal ConfigEntry<float> knockSeconds;
         internal ConfigEntry<bool> dropItem;
+        internal ConfigEntry<float> explodeVisualScale;
+        internal ConfigEntry<float> explodeVolume;
 
         private void Awake()
         {
@@ -48,6 +50,8 @@ namespace ChineloArremessavel
             explodeChance = Config.Bind("Explosao", "ChanceDeExplodir", 10f, new ConfigDescription("Chance (%) do chinelo explodir quando bate ou chega no alcance. No resto ele cai no chao e pode ser pego de novo.", new AcceptableValueRange<float>(0f, 100f)));
             explodeMultiplier = Config.Bind("Explosao", "Multiplicador", 5f, new ConfigDescription("Quantas vezes a explosao e mais forte que a original (forca contra monstros e empurrao).", new AcceptableValueRange<float>(1f, 10f)));
             blastRadius = Config.Bind("Explosao", "Raio", 6f, new ConfigDescription("Raio da explosao (m): monstros tomam dano e jogadores sao arremessados e desmaiam.", new AcceptableValueRange<float>(1f, 15f)));
+            explodeVisualScale = Config.Bind("Explosao", "TamanhoVisual", 3f, new ConfigDescription("Tamanho do efeito visual (1 = explosao normal do jogo, 3 = tres vezes maior).", new AcceptableValueRange<float>(1f, 6f)));
+            explodeVolume = Config.Bind("Explosao", "Volume", 1f, new ConfigDescription("Volume do estrondo (0 a 1).", new AcceptableValueRange<float>(0f, 1f)));
             explodePlayerDamage = Config.Bind("Explosao", "DanoEmJogadores", 0, new ConfigDescription("Dano da explosao em jogadores (0 = so arremessa e desmaia, sem tirar vida).", new AcceptableValueRange<int>(0, 100)));
             harmony = new Harmony(Guid);
             harmony.PatchAll(typeof(ChineloPlugin).Assembly);
